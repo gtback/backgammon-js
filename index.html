@@ -62,6 +62,9 @@
       ctx.lineWidth = 1;
       pointGap = 4;
 
+      ctx.font = '18px arial';
+      ctx.textAlign = 'center';
+
       for (point = 0; point < 12; point++) {
         ctx.strokeStyle = point % 2 == 0 ? white : red;
         ctx.fillStyle = point % 2 == 0 ? red : white;
@@ -75,6 +78,8 @@
         ctx.lineTo(startX + pointGap / 2, boardY);
         ctx.fill();
         ctx.stroke();
+        ctx.fillStyle = black;
+        ctx.fillText(point, midpoint, boardY - 5);
       }
 
       for (point = 0; point < 12; point++) {
@@ -89,6 +94,8 @@
         ctx.lineTo(startX + pointGap / 2, boardY + boardHeight);
         ctx.fill();
         ctx.stroke();
+        ctx.fillStyle = black;
+        ctx.fillText(point, midpoint, boardY + boardHeight + 18);
       }
 
       point = 4;
