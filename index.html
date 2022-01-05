@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backgammon-JS Demo</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="board">
+    <p>Backgammon Board</p>
+  </canvas>
+
+  <script>
+    function drawBoard() {
+      const canvas = document.querySelector('#board');
+
+      const width = canvas.width = 600;
+      const height = canvas.height = 400;
+
+      const pointHeight = height * 0.45;
+
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = 'rgb(0, 0, 0)';
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.lineWidth = 1;
+      pointGap = 4;
+
+      red = 'rgb(255, 0, 0)';
+      white = 'rgb(255, 255, 255)';
+
+      for (point = 0; point < 12; point++) {
+        ctx.strokeStyle = point % 2 == 0 ? white : red;
+        ctx.fillStyle = point % 2 == 0 ? red : white;
+        startX = point * width / 12;
+        midpoint = startX + width / 24;
+        ctx.beginPath();
+        ctx.moveTo(startX + pointGap / 2, 0);
+        ctx.lineTo(startX + width / 12 - pointGap / 2, 0);
+        ctx.lineTo(midpoint, pointHeight);
+        ctx.lineTo(startX + pointGap / 2, 0);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      for (point = 0; point < 12; point++) {
+        ctx.strokeStyle = point % 2 == 0 ? red : white;
+        ctx.fillStyle = point % 2 == 0 ? white : red;
+        startX = point * width / 12;
+        midpoint = startX + width / 24;
+        ctx.beginPath();
+        ctx.moveTo(startX + pointGap / 2, height);
+        ctx.lineTo(startX + width / 12 - pointGap / 2, height);
+        ctx.lineTo(midpoint, height - pointHeight);
+        ctx.lineTo(startX + pointGap / 2, height);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      point = 4;
+      radius = width / 32;
+      ctx.fillStyle = 'rgb(0, 127, 255)';
+
+      stackCount = 0;
+
+      startX = point * width / 12;
+      midpoint = startX + width / 24;
+
+      numCheckers = 6;
+      for (i = 0; i < numCheckers; i++) {
+        ctx.beginPath();
+        ctx.arc(midpoint, (2 * radius * i) + radius, radius, degToRad(0), degToRad(360), false);
+        ctx.fill();
+      }
+    }
+    function degToRad(degrees) {
+      return degrees * Math.PI / 180;
+    };
+    drawBoard();
+  </script>
+</body>
+
+</html>
