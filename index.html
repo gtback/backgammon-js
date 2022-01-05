@@ -59,7 +59,7 @@
       ctx.fillStyle = black;
       ctx.fillRect(boardX, boardY, boardWidth, boardHeight);
 
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 2;
       pointGap = 4;
 
       ctx.font = '18px arial';
@@ -84,8 +84,10 @@
 
         ctx.beginPath();
         ctx.moveTo(startX + pointGap / 2, baseLine);
-        ctx.lineTo(startX + boardWidth / 12 - pointGap / 2, baseLine);
         ctx.lineTo(midpoint, tip);
+        ctx.lineTo(startX + boardWidth / 12 - pointGap / 2, baseLine);
+        ctx.stroke();
+        // Back to starting point
         ctx.lineTo(startX + pointGap / 2, baseLine);
         ctx.fill();
 
@@ -93,11 +95,12 @@
         ctx.fillText(point + 1, midpoint, textPoint);
       }
 
+      ctx.strokeStyle = black;
+      ctx.strokeRect(boardX, boardY, boardWidth, boardHeight);
+
       point = 4;
       radius = boardWidth / 32;
       ctx.fillStyle = 'rgb(0, 127, 255)';
-
-      stackCount = 0;
 
       startX = boardX + point * boardWidth / 12;
       midpoint = startX + boardWidth / 24;
@@ -105,13 +108,16 @@
       numCheckers = 4;
       for (i = 0; i < numCheckers; i++) {
         ctx.beginPath();
-        ctx.arc(midpoint, boardY + (2 * radius * i) + radius, radius, degToRad(0), degToRad(360), false);
+        ctx.arc(midpoint, boardY + pointGap / 2 + (2 * radius * i) + radius, radius, degToRad(0), degToRad(360), false);
         ctx.fill();
+        ctx.stroke();
       }
     }
+
     function degToRad(degrees) {
       return degrees * Math.PI / 180;
     };
+
     drawBoard();
   </script>
 </body>
