@@ -23,7 +23,7 @@
       const canvas = document.querySelector('#board');
       const ctx = canvas.getContext('2d');
 
-      const canvasWidth = canvas.width = 750;
+      const canvasWidth = canvas.width = 790;
       const canvasHeight = canvas.height = 550;
 
       const canvasMargin = 50;
@@ -39,7 +39,9 @@
       const boardX = frameX + frameThickness;
       const boardY = frameY + frameThickness;
 
-      const boardWidth = frameWidth - 2 * frameThickness;
+      const barThickness = 40;
+
+      const boardWidth = frameWidth - 2 * frameThickness - barThickness;
       const boardHeight = frameHeight - 2 * frameThickness;
 
       const pointHeight = boardHeight * 0.45;
@@ -57,7 +59,7 @@
       ctx.fillRect(frameX, frameY, frameWidth, frameHeight);
 
       ctx.fillStyle = black;
-      ctx.fillRect(boardX, boardY, boardWidth, boardHeight);
+      ctx.fillRect(boardX, boardY, boardWidth + barThickness, boardHeight);
 
       ctx.lineWidth = 2;
       pointGap = 4;
@@ -83,6 +85,9 @@
           baseLine = boardY + boardHeight;
           textPoint = boardY + boardHeight + 18;
         }
+        if (point < 6 || point > 17) {
+          startX += barThickness;
+        }
 
         xInit = startX + xDirection * (point % 12) * boardWidth / 12;
         midpoint = xInit + xDirection * boardWidth / 24;
@@ -101,8 +106,13 @@
         ctx.fillText(point + 1, midpoint, textPoint);
       }
 
+      // Draw frame around board to clean up point strokes
       ctx.strokeStyle = black;
-      ctx.strokeRect(boardX, boardY, boardWidth, boardHeight);
+      ctx.strokeRect(boardX, boardY, boardWidth + barThickness, boardHeight);
+
+      // Draw Bar
+      ctx.fillStyle = brown;
+      ctx.fillRect(boardX + boardWidth / 2, frameY, barThickness, frameHeight);
 
       point = 4;
       radius = boardWidth / 32;
