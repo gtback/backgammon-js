@@ -23,26 +23,38 @@
       const canvas = document.querySelector('#board');
       const ctx = canvas.getContext('2d');
 
-      const canvasWidth = canvas.width = 700;
-      const canvasHeight = canvas.height = 500;
+      const canvasWidth = canvas.width = 750;
+      const canvasHeight = canvas.height = 550;
 
       const canvasMargin = 50;
 
-      const boardX = frameX = canvasMargin;
-      const boardY = frameY = canvasMargin;
+      const frameX = canvasMargin;
+      const frameY = canvasMargin;
 
-      const boardWidth = frameWidth = canvasWidth - 2 * canvasMargin;
-      const boardHeight = frameHeight = canvasHeight - 2 * canvasMargin;
+      const frameWidth = canvasWidth - 2 * canvasMargin;
+      const frameHeight = canvasHeight - 2 * canvasMargin;
+
+      const frameThickness = 25;
+
+      const boardX = frameX + frameThickness;
+      const boardY = frameY + frameThickness;
+
+      const boardWidth = frameWidth - 2 * frameThickness;
+      const boardHeight = frameHeight - 2 * frameThickness;
 
       const pointHeight = boardHeight * 0.45;
 
       black = 'rgb(0, 0, 0)';
+      brown = 'rgb(153,102,51)';
       red = 'rgb(255, 0, 0)';
       white = 'rgb(255, 255, 255)';
 
       ctx.lineWidth = 5;
       ctx.strokeStyle = black;
       ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+
+      ctx.fillStyle = brown;
+      ctx.fillRect(frameX, frameY, frameWidth, frameHeight);
 
       ctx.fillStyle = black;
       ctx.fillRect(boardX, boardY, boardWidth, boardHeight);
