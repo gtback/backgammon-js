@@ -44,6 +44,14 @@
       const boardWidth = frameWidth - 2 * frameThickness - barThickness;
       const boardHeight = frameHeight - 2 * frameThickness;
 
+      const board = {
+        boardX: boardX,
+        boardY: boardY,
+        boardWidth: boardWidth,
+        boardHeight: boardHeight,
+        barThickness: barThickness,
+      }
+
       const pointHeight = boardHeight * 0.45;
 
       black = 'rgb(0, 0, 0)';
@@ -71,26 +79,16 @@
         ctx.strokeStyle = point % 2 == 0 ? white : red;
         ctx.fillStyle = point % 2 == 0 ? red : white;
 
-        if (point >= 12) {
-          startX = boardX;
-          xDirection = 1; // left to right
-          yDirection = 1; // downward
-          baseLine = boardY;
-          textPoint = boardY - 5;
-        }
-        else {
-          startX = boardX + boardWidth;
-          xDirection = -1; // right to left
-          yDirection = -1; // upward
-          baseLine = boardY + boardHeight;
-          textPoint = boardY + boardHeight + 18;
-        }
-        if (point < 6 || point > 17) {
-          startX += barThickness;
-        }
+        const {
+          startX,
+          xDirection,
+          yDirection,
+          baseLine,
+          textPoint,
+          xInit,
+          midpoint
+        } = getPointData(point, board);
 
-        xInit = startX + xDirection * (point % 12) * boardWidth / 12;
-        midpoint = xInit + xDirection * boardWidth / 24;
         tip = baseLine + yDirection * pointHeight;
 
         ctx.beginPath();
@@ -114,21 +112,70 @@
       ctx.fillStyle = brown;
       ctx.fillRect(boardX + boardWidth / 2, frameY, barThickness, frameHeight);
 
-      point = 4;
+      point = 17;
       radius = boardWidth / 32;
       ctx.fillStyle = 'rgb(0, 127, 255)';
 
-      startX = boardX + point * boardWidth / 12;
-      midpoint = startX + boardWidth / 24;
+      // Use point-1 since we number points 1-24 but the code expects 0-23.
+      const {
+        startX,
+        xDirection,
+        yDirection,
+        baseLine,
+        textPoint,
+        xInit,
+        midpoint
+      } = getPointData(point - 1, board);
 
       numCheckers = 4;
       for (i = 0; i < numCheckers; i++) {
         ctx.beginPath();
-        ctx.arc(midpoint, boardY + pointGap / 2 + (2 * radius * i) + radius, radius, degToRad(0), degToRad(360), false);
+        ctx.arc(midpoint, baseLine + yDirection * (pointGap / 2 + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false);
         ctx.fill();
         ctx.stroke();
       }
     }
+
+    function getPointData(point, board) {
+      const {
+        boardX,
+        boardY,
+        boardWidth,
+        boardHeight,
+        barThickness
+      } = board;
+
+      if (point >= 12) {
+        startX = boardX;
+        xDirection = 1; // left to right
+        yDirection = 1; // downward
+        baseLine = boardY;
+        textPoint = boardY - 5;
+      }
+      else {
+        startX = boardX + boardWidth;
+        xDirection = -1; // right to left
+        yDirection = -1; // upward
+        baseLine = boardY + boardHeight;
+        textPoint = boardY + boardHeight + 18;
+      }
+      if (point < 6 || point > 17) {
+        startX += barThickness;
+      }
+
+      xInit = startX + xDirection * (point % 12) * boardWidth / 12;
+      midpoint = xInit + xDirection * boardWidth / 24;
+
+      return {
+        "startX": startX,
+        "xDirection": xDirection,
+        "yDirection": yDirection,
+        "baseLine": baseLine,
+        "textPoint": textPoint,
+        "xInit": xInit,
+        "midpoint": midpoint
+      };
+    };
 
     function degToRad(degrees) {
       return degrees * Math.PI / 180;
