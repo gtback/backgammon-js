@@ -65,37 +65,32 @@
       ctx.font = '18px arial';
       ctx.textAlign = 'center';
 
-      for (point = 0; point < 12; point++) {
+      for (point = 0; point < 24; point++) {
         ctx.strokeStyle = point % 2 == 0 ? white : red;
         ctx.fillStyle = point % 2 == 0 ? red : white;
 
-        startX = boardX + point * boardWidth / 12;
+        startX = boardX + (point % 12) * boardWidth / 12;
         midpoint = startX + boardWidth / 24;
-        ctx.beginPath();
-        ctx.moveTo(startX + pointGap / 2, boardY);
-        ctx.lineTo(startX + boardWidth / 12 - pointGap / 2, boardY);
-        ctx.lineTo(midpoint, boardY + pointHeight);
-        ctx.lineTo(startX + pointGap / 2, boardY);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = black;
-        ctx.fillText(point, midpoint, boardY - 5);
-      }
+        if (point >= 12) {
+          baseLine = boardY;
+          tip = boardY + pointHeight;
+          textPoint = boardY - 5;
+        }
+        else {
+          baseLine = boardY + boardHeight;
+          tip = boardY + boardHeight - pointHeight;
+          textPoint = boardY + boardHeight + 18;
+        }
 
-      for (point = 0; point < 12; point++) {
-        ctx.strokeStyle = point % 2 == 0 ? red : white;
-        ctx.fillStyle = point % 2 == 0 ? white : red;
-        startX = boardX + point * boardWidth / 12;
-        midpoint = startX + boardWidth / 24;
         ctx.beginPath();
-        ctx.moveTo(startX + pointGap / 2, boardY + boardHeight);
-        ctx.lineTo(startX + boardWidth / 12 - pointGap / 2, boardY + boardHeight);
-        ctx.lineTo(midpoint, boardY + boardHeight - pointHeight);
-        ctx.lineTo(startX + pointGap / 2, boardY + boardHeight);
+        ctx.moveTo(startX + pointGap / 2, baseLine);
+        ctx.lineTo(startX + boardWidth / 12 - pointGap / 2, baseLine);
+        ctx.lineTo(midpoint, tip);
+        ctx.lineTo(startX + pointGap / 2, baseLine);
         ctx.fill();
-        ctx.stroke();
+
         ctx.fillStyle = black;
-        ctx.fillText(point, midpoint, boardY + boardHeight + 18);
+        ctx.fillText(point + 1, midpoint, textPoint);
       }
 
       point = 4;
