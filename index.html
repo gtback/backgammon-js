@@ -69,26 +69,32 @@
         ctx.strokeStyle = point % 2 == 0 ? white : red;
         ctx.fillStyle = point % 2 == 0 ? red : white;
 
-        startX = boardX + (point % 12) * boardWidth / 12;
-        midpoint = startX + boardWidth / 24;
         if (point >= 12) {
+          startX = boardX;
+          xDirection = 1; // left to right
+          yDirection = 1; // downward
           baseLine = boardY;
-          tip = boardY + pointHeight;
           textPoint = boardY - 5;
         }
         else {
+          startX = boardX + boardWidth;
+          xDirection = -1; // right to left
+          yDirection = -1; // upward
           baseLine = boardY + boardHeight;
-          tip = boardY + boardHeight - pointHeight;
           textPoint = boardY + boardHeight + 18;
         }
 
+        xInit = startX + xDirection * (point % 12) * boardWidth / 12;
+        midpoint = xInit + xDirection * boardWidth / 24;
+        tip = baseLine + yDirection * pointHeight;
+
         ctx.beginPath();
-        ctx.moveTo(startX + pointGap / 2, baseLine);
+        ctx.moveTo(xInit + xDirection * pointGap / 2, baseLine);
         ctx.lineTo(midpoint, tip);
-        ctx.lineTo(startX + boardWidth / 12 - pointGap / 2, baseLine);
+        ctx.lineTo(xInit + xDirection * (boardWidth / 12 - pointGap / 2), baseLine);
         ctx.stroke();
         // Back to starting point
-        ctx.lineTo(startX + pointGap / 2, baseLine);
+        ctx.lineTo(xInit + xDirection * pointGap / 2, baseLine);
         ctx.fill();
 
         ctx.fillStyle = black;
