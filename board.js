@@ -16,10 +16,10 @@ class Board {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
 
-        const canvasWidth = this.canvas.width = 790;
-        const canvasHeight = this.canvas.height = 550;
+        const canvasWidth = this.canvas.width = 640;
+        const canvasHeight = this.canvas.height = 480;
 
-        const canvasMargin = 50;
+        const canvasMargin = 40;
 
         const frameX = canvasMargin;
         const frameY = canvasMargin;
@@ -110,7 +110,7 @@ class Board {
     }
 
     drawPoint(point) {
-        const pointGap = 4;
+        const pointGap = 6;
 
         let {
             startX,
@@ -122,7 +122,7 @@ class Board {
             midpoint
         } = this.getPointData(point);
 
-        const pointHeight = this.board.height * 0.45;
+        const pointHeight = this.board.height * 0.40;
         let tip = baseLine + yDirection * pointHeight;
 
         this.ctx.beginPath();
