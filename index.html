@@ -20,7 +20,8 @@
   </canvas>
 
   <script>
-    drawBoard('#board');
+    const board = new Board(document.querySelector('#board'));
+    board.draw();
   </script>
 </body>
 
