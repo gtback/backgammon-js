@@ -1,3 +1,17 @@
+black = 'rgb(0, 0, 0)';
+brown = 'rgb(153,102,51)';
+red = 'rgb(255, 0, 0)';
+white = 'rgb(255, 255, 255)';
+
+player1 = {
+    checkerColor: 'rgb(0, 127, 255)'
+};
+
+player2 = {
+    checkerColor: 'rgb(255, 255, 0)'
+};
+
+
 function drawBoard(selector) {
     const canvas = document.querySelector(selector);
     const ctx = canvas.getContext('2d');
@@ -32,11 +46,6 @@ function drawBoard(selector) {
     }
 
     const pointHeight = boardHeight * 0.45;
-
-    black = 'rgb(0, 0, 0)';
-    brown = 'rgb(153,102,51)';
-    red = 'rgb(255, 0, 0)';
-    white = 'rgb(255, 255, 255)';
 
     ctx.lineWidth = 5;
     ctx.strokeStyle = black;
@@ -91,9 +100,22 @@ function drawBoard(selector) {
     ctx.fillStyle = brown;
     ctx.fillRect(boardX + boardWidth / 2, frameY, barThickness, frameHeight);
 
-    point = 17;
     radius = boardWidth / 32;
-    ctx.fillStyle = 'rgb(0, 127, 255)';
+
+    // Draw Opening Position
+    drawCheckers(ctx, board, 6, 5, player1, radius);
+    drawCheckers(ctx, board, 8, 3, player1, radius);
+    drawCheckers(ctx, board, 13, 5, player1, radius);
+    drawCheckers(ctx, board, 24, 2, player1, radius);
+
+    drawCheckers(ctx, board, 25 - 6, 5, player2, radius);
+    drawCheckers(ctx, board, 25 - 8, 3, player2, radius);
+    drawCheckers(ctx, board, 25 - 13, 5, player2, radius);
+    drawCheckers(ctx, board, 25 - 24, 2, player2, radius);
+}
+
+function drawCheckers(ctx, board, point, numCheckers, player, radius) {
+    ctx.fillStyle = player.checkerColor;
 
     // Use point-1 since we number points 1-24 but the code expects 0-23.
     const {
@@ -106,7 +128,6 @@ function drawBoard(selector) {
         midpoint
     } = getPointData(point - 1, board);
 
-    numCheckers = 4;
     for (i = 0; i < numCheckers; i++) {
         ctx.beginPath();
         ctx.arc(midpoint, baseLine + yDirection * (pointGap / 2 + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false);
