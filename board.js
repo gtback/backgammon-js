@@ -11,6 +11,57 @@ player2 = {
     checkerColor: 'rgb(255, 255, 0)'
 };
 
+class Point {
+    constructor(index, board) {
+        this.board = board;
+        this.index = index;
+
+        if (this.index >= 12) { // Points on the far (Player 2) side of the board
+            this.startX = this.board.x;
+            this.xDirection = 1; // left to right
+            this.yDirection = 1; // downward
+            this.baseLine = this.board.y;
+            this.textPoint = this.board.y - 5;
+        }
+        else { // Points on the near (Player 1) side of the board
+            this.startX = this.board.x + this.board.width;
+            this.xDirection = -1; // right to left
+            this.yDirection = -1; // upward
+            this.baseLine = this.board.y + this.board.height;
+            this.textPoint = this.board.y + this.board.height + 18;
+        }
+        if (this.index < 6 || this.index > 17) { // Points on the right side of the bar.
+            this.startX += this.board.barThickness;
+        }
+
+        this.xInit = this.startX + this.xDirection * (this.index % 12) * this.board.width / 12;
+        this.midpoint = this.xInit + this.xDirection * this.board.width / 24;
+    }
+
+    draw(ctx) {
+        const pointGap = 6;
+
+        ctx.strokeStyle = this.index % 2 == 0 ? white : red;
+        ctx.fillStyle = this.index % 2 == 0 ? red : white;
+
+        const pointHeight = this.board.height * 0.40;
+        let tip = this.baseLine + this.yDirection * pointHeight;
+
+        ctx.beginPath();
+        ctx.moveTo(this.xInit + this.xDirection * pointGap / 2, this.baseLine);
+        ctx.lineTo(this.midpoint, tip);
+        ctx.lineTo(this.xInit + this.xDirection * (this.board.width / 12 - pointGap / 2), this.baseLine);
+        ctx.stroke();
+        // Back to starting point
+        ctx.lineTo(this.xInit + this.xDirection * pointGap / 2, this.baseLine);
+        ctx.fill();
+
+        // Label point number
+        ctx.fillStyle = black;
+        ctx.fillText(this.index + 1, this.midpoint, this.textPoint);
+    }
+};
+
 class Diagram {
     constructor(canvas) {
         this.canvas = canvas;
@@ -53,6 +104,11 @@ class Diagram {
             barThickness: barThickness,
         }
 
+        this.points = Array();
+        for (let point = 0; point < 24; point++) {
+            this.points.push(new Point(point, this.board));
+        }
+
         this.radius = this.board.width / 32;
     }
 
@@ -93,12 +149,7 @@ class Diagram {
         this.ctx.font = '18px arial';
         this.ctx.textAlign = 'center';
 
-        for (let point = 0; point < 24; point++) {
-            this.ctx.strokeStyle = point % 2 == 0 ? white : red;
-            this.ctx.fillStyle = point % 2 == 0 ? red : white;
-
-            this.drawPoint(point)
-        }
+        this.points.forEach((point) => point.draw(this.ctx));
 
         // Draw frame around board to clean up point strokes
         this.ctx.strokeStyle = black;
@@ -109,105 +160,24 @@ class Diagram {
         this.ctx.fillRect(this.board.x + this.board.width / 2, this.frame.y, this.board.barThickness, this.frame.height);
     }
 
-    drawPoint(point) {
-        const pointGap = 6;
-
-        let {
-            startX,
-            xDirection,
-            yDirection,
-            baseLine,
-            textPoint,
-            xInit,
-            midpoint
-        } = this.getPointData(point);
-
-        const pointHeight = this.board.height * 0.40;
-        let tip = baseLine + yDirection * pointHeight;
-
-        this.ctx.beginPath();
-        this.ctx.moveTo(xInit + xDirection * pointGap / 2, baseLine);
-        this.ctx.lineTo(midpoint, tip);
-        this.ctx.lineTo(xInit + xDirection * (this.board.width / 12 - pointGap / 2), baseLine);
-        this.ctx.stroke();
-        // Back to starting point
-        this.ctx.lineTo(xInit + xDirection * pointGap / 2, baseLine);
-        this.ctx.fill();
-
-        // Label point number
-        this.ctx.fillStyle = black;
-        this.ctx.fillText(point + 1, midpoint, textPoint);
-    }
-
-    drawCheckers(point, numCheckers, player) {
+    drawCheckers(pointNum, numCheckers, player) {
         let radius = this.radius;
 
         this.ctx.fillStyle = player.checkerColor;
 
         // Use point-1 since we number points 1-24 but the code expects 0-23.
-        const {
-            startX,
-            xDirection,
-            yDirection,
-            baseLine,
-            textPoint,
-            xInit,
-            midpoint
-        } = this.getPointData(point - 1);
+        let point = this.points[pointNum - 1];
 
         // Space above the baseline before starting checkers
         const pointPadding = 2;
 
         for (let i = 0; i < numCheckers; i++) {
             this.ctx.beginPath();
-            this.ctx.arc(midpoint, baseLine + yDirection * (pointPadding + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false);
+            this.ctx.arc(point.midpoint, point.baseLine + point.yDirection * (pointPadding + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false);
             this.ctx.fill();
             this.ctx.stroke();
         }
     }
-
-    getPointData(point) {
-        const {
-            boardX,
-            boardY,
-            boardWidth,
-            boardHeight,
-            barThickness
-        } = this.board;
-
-        let startX, xDirection, yDirection, baseLine, textPoint;
-
-        if (point >= 12) {
-            startX = this.board.x;
-            xDirection = 1; // left to right
-            yDirection = 1; // downward
-            baseLine = this.board.y;
-            textPoint = this.board.y - 5;
-        }
-        else {
-            startX = this.board.x + this.board.width;
-            xDirection = -1; // right to left
-            yDirection = -1; // upward
-            baseLine = this.board.y + this.board.height;
-            textPoint = this.board.y + this.board.height + 18;
-        }
-        if (point < 6 || point > 17) {
-            startX += this.board.barThickness;
-        }
-
-        let xInit = startX + xDirection * (point % 12) * this.board.width / 12;
-        let midpoint = xInit + xDirection * this.board.width / 24;
-
-        return {
-            "startX": startX,
-            "xDirection": xDirection,
-            "yDirection": yDirection,
-            "baseLine": baseLine,
-            "textPoint": textPoint,
-            "xInit": xInit,
-            "midpoint": midpoint
-        };
-    };
 }
 
 function degToRad(degrees) {
