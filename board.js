@@ -11,7 +11,7 @@ player2 = {
     checkerColor: 'rgb(255, 255, 0)'
 };
 
-class Board {
+class Diagram {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
