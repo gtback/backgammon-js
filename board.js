@@ -2,22 +2,26 @@ black = 'rgb(0, 0, 0)';
 brown = 'rgb(153,102,51)';
 red = 'rgb(255, 0, 0)';
 white = 'rgb(255, 255, 255)';
+green = 'rgb(0,127,0)';
 
 blue = 'rgb(0, 127, 255)';
 yellow = 'rgb(255, 255, 0)';
 
 const DEFAULT_OPTIONS = {
+    canvasWidth: 640,
+    canvasHeight: 480,
+    canvasMargin: 40,
+    frameThickness: 25,
+    barThickness: 40,
     frameColor: brown,
-    boardBackground: black,
-    // We start counting at 0, so the "oddPoints" are at index 0, 2, 4, ... but
-    // are points 1, 3, 5, ...
+    boardBackground: green,
     oddPoints: red,
     evenPoints: white,
     player1: {
-        checkerColor: blue
+        checkerColor: black,
     },
     player2: {
-        checkerColor: yellow,
+        checkerColor: white,
     },
 };
 
@@ -42,7 +46,7 @@ class Point {
             this.textPoint = this.board.y + this.board.height + 18;
         }
         if (this.index < 6 || this.index > 17) { // Points on the right side of the bar.
-            this.startX += this.board.barThickness;
+            this.startX += this.opts.barThickness;
         }
 
         this.xInit = this.startX + this.xDirection * (this.index % 12) * this.board.width / 12;
@@ -52,11 +56,14 @@ class Point {
     draw(ctx) {
         const pointGap = 6;
 
+        // We start counting at 0, so the "oddPoints" are at index 0, 2, 4, ... but
+        // are points 1, 3, 5, ...
         ctx.fillStyle = this.index % 2 == 0 ? this.opts.oddPoints : this.opts.evenPoints;
         // The stroke style is the opposite of the fill style
-        ctx.strokeStyle = this.index % 2 == 0 ? this.opts.evenPoints : this.opts.oddPoints;
+        // ctx.strokeStyle = this.index % 2 == 0 ? this.opts.evenPoints : this.opts.oddPoints;
+        ctx.strokeStyle = black;
 
-        const pointHeight = this.board.height * 0.40;
+        const pointHeight = this.board.height * 0.45;
         let tip = this.baseLine + this.yDirection * pointHeight;
 
         ctx.beginPath();
@@ -81,10 +88,10 @@ class Diagram {
 
         this.opts = DEFAULT_OPTIONS;
 
-        const canvasWidth = this.canvas.width = 640;
-        const canvasHeight = this.canvas.height = 480;
+        const canvasWidth = this.canvas.width = this.opts.canvasWidth;
+        const canvasHeight = this.canvas.height = this.opts.canvasHeight;
 
-        const canvasMargin = 40;
+        const canvasMargin = this.opts.canvasMargin;
 
         const frameX = canvasMargin;
         const frameY = canvasMargin;
@@ -92,30 +99,24 @@ class Diagram {
         const frameWidth = canvasWidth - 2 * canvasMargin;
         const frameHeight = canvasHeight - 2 * canvasMargin;
 
-        const frameThickness = 25;
-
         this.frame = {
             x: frameX,
             y: frameY,
             width: frameWidth,
             height: frameHeight,
-            frameThickness: frameThickness,
         }
 
-        const boardX = frameX + frameThickness;
-        const boardY = frameY + frameThickness;
+        const boardX = frameX + this.opts.frameThickness;
+        const boardY = frameY + this.opts.frameThickness;
 
-        const barThickness = 40;
-
-        const boardWidth = frameWidth - 2 * frameThickness - barThickness;
-        const boardHeight = frameHeight - 2 * frameThickness;
+        const boardWidth = frameWidth - 2 * this.opts.frameThickness - this.opts.barThickness;
+        const boardHeight = frameHeight - 2 * this.opts.frameThickness;
 
         this.board = {
             x: boardX,
             y: boardY,
             width: boardWidth,
             height: boardHeight,
-            barThickness: barThickness,
         }
 
         this.points = Array();
@@ -152,26 +153,30 @@ class Diagram {
     drawFrame() {
         this.ctx.fillStyle = this.opts.frameColor;
         this.ctx.fillRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeStyle = black;
+        this.ctx.strokeRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
     }
 
     drawBoard() {
         this.ctx.fillStyle = this.opts.boardBackground;
-        this.ctx.fillRect(this.board.x, this.board.y, this.board.width + this.board.barThickness, this.board.height);
+        this.ctx.fillRect(this.board.x, this.board.y, this.board.width + this.opts.barThickness, this.board.height);
 
-        this.ctx.lineWidth = 2;
+        this.ctx.lineWidth = 1;
 
         this.ctx.font = '18px arial';
         this.ctx.textAlign = 'center';
 
         this.points.forEach((point) => point.draw(this.ctx));
 
-        // Draw frame around board to clean up point strokes
-        this.ctx.strokeStyle = black;
-        this.ctx.strokeRect(this.board.x, this.board.y, this.board.width + this.board.barThickness, this.board.height);
-
         // Draw Bar
         this.ctx.fillStyle = this.opts.frameColor;
-        this.ctx.fillRect(this.board.x + this.board.width / 2, this.frame.y, this.board.barThickness, this.frame.height);
+        this.ctx.fillRect(this.board.x + this.board.width / 2, this.board.y, this.opts.barThickness, this.board.height);
+
+        // Draw frame around board to clean up point strokes
+        this.ctx.strokeStyle = black;
+        this.ctx.strokeRect(this.board.x, this.board.y, this.board.width / 2, this.board.height);
+        this.ctx.strokeRect(this.board.x + (this.board.width / 2) + this.opts.barThickness, this.board.y, this.board.width / 2, this.board.height);
     }
 
     drawCheckers(pointNum, numCheckers, player) {
