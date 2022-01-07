@@ -7,14 +7,34 @@
   <title>Backgammon-JS Demo</title>
   <style>
     body {
-      margin: 0;
-      overflow: hidden;
+      margin: 20;
     }
   </style>
   <script src="board.js"></script>
 </head>
 
 <body>
+  <h1>Backgammon-JS</h1>
+  <p>This JavaScript library makes it easy to draw Backgammon boards.</p>
+
+  <p>For example, the diagram below is drawn with just the following code:</p>
+
+  <pre><code>
+  &lt;script src="board.js"&gt;&lt;/script&gt;
+  ...
+  &lt;canvas id="diagram1"&gt;
+    &lt;p&gt;Figure 1&lt;/p&gt;
+  &lt;/canvas&gt;
+
+  &lt;script&gt;
+    const diagram = new Diagram(document.querySelector('#diagram1'));
+    diagram.draw();
+  &lt;/script&gt;
+  </code></pre>
+
+  <p>The sizes and colors are all the defaults, and the checkers are put in
+  their starting positions.</p>
+
   <canvas id="diagram1">
     <p>Figure 1</p>
   </canvas>
