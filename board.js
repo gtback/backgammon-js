@@ -25,6 +25,11 @@ const DEFAULT_OPTIONS = {
     },
 };
 
+newGame = {
+    checkerCount: [2, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 5, 5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, 2],
+    players: [-1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, -1, 1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 1],
+}
+
 class Point {
     constructor(index, board, opts) {
         this.index = index;
@@ -82,8 +87,12 @@ class Point {
 };
 
 class Diagram {
-    constructor(canvas) {
+    constructor(canvas, game) {
         this.canvas = canvas;
+        if (game == null) {
+            game = newGame;
+        }
+        this.game = game;
         this.ctx = canvas.getContext('2d');
 
         this.opts = DEFAULT_OPTIONS;
@@ -132,16 +141,14 @@ class Diagram {
         this.drawFrame();
         this.drawBoard();
 
-        // Draw Opening Position
-        this.drawCheckers(6, 5, this.opts.player1);
-        this.drawCheckers(8, 3, this.opts.player1);
-        this.drawCheckers(13, 5, this.opts.player1);
-        this.drawCheckers(24, 2, this.opts.player1);
+        for (let i = 1; i < 25; i++) {
+            let numCheckers = this.game.checkerCount[i - 1];
+            let player = this.game.players[i - 1] == 1 ? this.opts.player1 : this.opts.player2;
 
-        this.drawCheckers(25 - 6, 5, this.opts.player2);
-        this.drawCheckers(25 - 8, 3, this.opts.player2);
-        this.drawCheckers(25 - 13, 5, this.opts.player2);
-        this.drawCheckers(25 - 24, 2, this.opts.player2);
+            if (numCheckers != 0) {
+                this.drawCheckers(i, numCheckers, player);
+            }
+        }
     }
 
     drawCanvas() {
