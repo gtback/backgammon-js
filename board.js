@@ -25,10 +25,7 @@ const DEFAULT_OPTIONS = {
     },
 };
 
-newGame = {
-    checkerCount: [2, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 5, 5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, 2],
-    players: [-1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, -1, 1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 1],
-}
+starting = "XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10"
 
 class Point {
     constructor(index, board, opts) {
@@ -90,9 +87,9 @@ class Diagram {
     constructor(canvas, game) {
         this.canvas = canvas;
         if (game == null) {
-            game = newGame;
+            game = starting;
         }
-        this.game = game;
+        this.game = xgidToGame(game);
         this.ctx = canvas.getContext('2d');
 
         this.opts = DEFAULT_OPTIONS;
@@ -211,3 +208,51 @@ class Diagram {
 function degToRad(degrees) {
     return degrees * Math.PI / 180;
 };
+
+function xgidToGame(xgid) {
+    const regex = /(XGID=)?([\-A-Oa-o]{26})\:(\d+)\:(\-?[01])\:(\-?1)\:([0-6][0-6])\:(\d+)\:(\d+)\:([0-3])\:(\d+)\:.+/;
+    match = xgid.match(regex);
+    if (match == null) {
+        //TODO
+    }
+    // console.log(match);
+    checkers = match[2];
+    cube = 2 ** match[3];
+    cubeOwner = match[4];
+    // Check that if cube = 1, owner is 0
+    turn = match[5];
+    roll = match[6];
+    playerScore = match[7];
+    oppScore = match[8];
+    gameOptions = match[9];
+    matchDuration = match[10];
+    xxx = match[11]; // ???
+
+    checkerCount = Array();
+    player = Array();
+    // TODO: handle checkers on bar (checkers[0] and checkers[25])
+    for (let i = 1; i < 25; i++) {
+        char = checkers.charCodeAt(i);
+        if (char == '-'.charCodeAt(0)) {
+            checkerCount.push(0);
+            player.push(0);
+        }
+        else if (char < 'Z'.charCodeAt(0)) {
+            player.push(1)
+            checkerCount.push((char - 'A'.charCodeAt(0)) + 1);
+        }
+        else if (char >= 'a'.charCodeAt(0)) {
+            player.push(-1)
+            checkerCount.push((char - 'a'.charCodeAt(0)) + 1);
+        }
+        else {
+            console.log("Unknown character: " + char)
+        }
+    }
+    // console.log(checkerCount);
+    // console.log(player);
+    return {
+        checkerCount: checkerCount,
+        players: player,
+    }
+}
