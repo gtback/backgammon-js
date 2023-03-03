@@ -189,10 +189,12 @@ class Diagram {
 
         // Space above the baseline before starting checkers
         const pointPadding = 2;
+        // Space between checkers on the same point
+        const pointSpacing = 2;
 
         for (let i = 0; i < numCheckers; i++) {
             this.ctx.beginPath();
-            this.ctx.arc(point.midpoint, point.baseLine + point.yDirection * (pointPadding + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false);
+            this.ctx.arc(point.midpoint, point.baseLine + point.yDirection * (pointPadding + pointSpacing * i + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false);
             this.ctx.fill();
             this.ctx.stroke();
         }
