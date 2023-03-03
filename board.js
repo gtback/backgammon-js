@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2022-2023 Greg Back <git@gregback.net>
+// SPDX-License-Identifier: MIT
+
 black = 'rgb(0, 0, 0)';
 brown = 'rgb(153,102,51)';
 red = 'rgb(255, 0, 0)';
