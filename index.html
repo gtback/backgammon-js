@@ -32,16 +32,38 @@
   &lt;/script&gt;
   </code></pre>
 
-  <p>The sizes and colors are all the defaults, and the checkers are put in
-  their starting positions.</p>
+  <p>
+    The sizes and colors are all the default.
+    By default, the checkers are put in their starting positions.
+    However, you can enter a custom XGID to draw a board (checker positions only).
+  </p>
 
-  <canvas id="diagram1">
-    <p>Figure 1</p>
-  </canvas>
+  <div>
+    <canvas id="diagram1">
+      <p>Figure 1</p>
+    </canvas>
+  </div>
+
+  <div>
+    <label for="user_login">Game ID:</label>
+    <input type="text" id="game_id" size="45">
+    <button onclick="drawBoard('game_id')">Draw Board</button>
+  </div>
 
   <script>
-    const diagram = new Diagram(document.querySelector('#diagram1'));
-    diagram.draw();
+    function drawBoard(elementId) {
+      gameId = null;
+      element = document.getElementById(elementId);
+      if (element !== null) {
+        gameId = element.value;
+      }
+      //console.log(gameId)
+
+      const diagram = new Diagram(document.querySelector('#diagram1'), gameId);
+      diagram.draw();
+    }
+
+    drawBoard();
   </script>
 </body>
 
