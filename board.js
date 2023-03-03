@@ -19,9 +19,11 @@ const DEFAULT_OPTIONS = {
     evenPoints: white,
     player1: {
         checkerColor: black,
+        textColor: white,
     },
     player2: {
         checkerColor: white,
+        textColor: black,
     },
 };
 
@@ -196,11 +198,27 @@ class Diagram {
         // Space between checkers on the same point
         const pointSpacing = 2;
 
-        for (let i = 0; i < numCheckers; i++) {
+        let maxCheckersPerPoint = 5;
+
+        for (let i = 0; i < Math.min(numCheckers, maxCheckersPerPoint); i++) {
             this.ctx.beginPath();
             this.ctx.arc(point.midpoint, point.baseLine + point.yDirection * (pointPadding + pointSpacing * i + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false);
             this.ctx.fill();
             this.ctx.stroke();
+        }
+
+        if (numCheckers > maxCheckersPerPoint) {
+            this.ctx.fillStyle = player.textColor;
+            let x = point.midpoint;
+
+            // TODO: calculate this better
+            let offsets = maxCheckersPerPoint;
+            if (point.yDirection == - 1) {
+                offsets--;
+            }
+            let y = point.baseLine + point.yDirection * (((2 * radius + pointSpacing) * offsets)) - (radius - 5);
+
+            this.ctx.fillText(numCheckers, x, y);
         }
     }
 }
