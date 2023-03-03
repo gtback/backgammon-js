@@ -9,7 +9,7 @@ yellow = 'rgb(255, 255, 0)';
 
 const DEFAULT_OPTIONS = {
     canvasWidth: 640,
-    canvasHeight: 480,
+    canvasHeight: 560,
     canvasMargin: 40,
     frameThickness: 25,
     barThickness: 40,
@@ -56,7 +56,7 @@ class Point {
     }
 
     draw(ctx) {
-        const pointGap = 6;
+        const pointGap = 1;
 
         // We start counting at 0, so the "oddPoints" are at index 0, 2, 4, ... but
         // are points 1, 3, 5, ...
@@ -130,7 +130,7 @@ class Diagram {
             this.points.push(new Point(point, this.board, this.opts));
         }
 
-        this.radius = this.board.width / 32;
+        this.radius = this.board.width / 25;
     }
 
     draw() {
