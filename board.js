@@ -151,6 +151,8 @@ class Diagram {
                 this.drawCheckers(i, numCheckers, player);
             }
         }
+
+        this.drawCheckersOnBar();
     }
 
     drawCanvas() {
@@ -224,11 +226,49 @@ class Diagram {
             this.ctx.fillText(numCheckers, x, y);
         }
     }
+
+    drawCheckersOnBar() {
+        const barCenter = this.opts.canvasMargin + this.opts.frameThickness + (this.board.width / 2) + this.opts.barThickness / 2;
+
+        if (this.game.oppBarCheckers > 0) {
+            let y = this.board.y + (this.board.height * 2 / 3)
+            this.ctx.fillStyle = this.opts.player2.checkerColor;
+            this.ctx.beginPath();
+            this.ctx.arc(barCenter, y, this.radius, degToRad(0), degToRad(360), false);
+            this.ctx.fill();
+            this.ctx.stroke();
+            if (this.game.oppBarCheckers > 1) {
+                this.ctx.fillStyle = this.opts.player2.textColor;
+                this.ctx.fillText(this.game.oppBarCheckers, barCenter, y + (this.radius - 12));
+            }
+        }
+
+        if (this.game.playerBarCheckers > 0) {
+            let y = this.board.y + (this.board.height / 3)
+            this.ctx.fillStyle = this.opts.player1.checkerColor;
+            this.ctx.beginPath();
+            this.ctx.arc(barCenter, y, this.radius, degToRad(0), degToRad(360), false);
+            this.ctx.fill();
+            this.ctx.stroke();
+            if (this.game.playerBarCheckers > 1) {
+                this.ctx.fillStyle = this.opts.player1.textColor;
+                this.ctx.fillText(this.game.playerBarCheckers, barCenter, y + (this.radius - 12));
+            }
+        }
+    }
 }
 
 function degToRad(degrees) {
     return degrees * Math.PI / 180;
 };
+
+function charToCount(char) {
+    if (char == '-'.charCodeAt(0)) {
+        return 0;
+    }
+    let count = (char - 'A'.charCodeAt(0)) % 32 + 1;
+    return count;
+}
 
 function xgidToGame(xgid) {
     const regex = /(XGID=)?([-A-Oa-o]{26}):(\d+):(-?[01]):(-?1):([0-6][0-6]):(\d+):(\d+):([0-3]):(\d+):.+/;
@@ -252,7 +292,6 @@ function xgidToGame(xgid) {
     let checkerCount = Array();
     let player = Array();
 
-    // TODO: handle checkers on bar (checkers[0] and checkers[25])
     for (let i = 1; i < 25; i++) {
         let char = checkers.charCodeAt(i);
         if (char == '-'.charCodeAt(0)) {
@@ -261,11 +300,11 @@ function xgidToGame(xgid) {
         }
         else if (char < 'Z'.charCodeAt(0)) {
             player.push(1)
-            checkerCount.push((char - 'A'.charCodeAt(0)) + 1);
+            checkerCount.push(charToCount(char));
         }
         else if (char >= 'a'.charCodeAt(0)) {
             player.push(-1)
-            checkerCount.push((char - 'a'.charCodeAt(0)) + 1);
+            checkerCount.push(charToCount(char));
         }
         else {
             console.log("Unknown character: " + char)
@@ -275,5 +314,7 @@ function xgidToGame(xgid) {
     return {
         checkerCount: checkerCount,
         players: player,
+        playerBarCheckers: charToCount(checkers.charCodeAt(25)),
+        oppBarCheckers: charToCount(checkers.charCodeAt(0)),
     }
 }
