@@ -154,6 +154,7 @@ class Diagram {
         }
 
         this.drawCheckersOnBar();
+        this.drawCube(this.game.cubeOwner, this.game.cube);
     }
 
     drawCanvas() {
@@ -257,6 +258,44 @@ class Diagram {
             }
         }
     }
+
+    drawCube(owner, value) {
+        // Owner should be:
+        // - 0 for a centered cube
+        // - 1 if the cube is owned by the player
+        // - -1 if the cube is owned by the opponent
+        const cubeSize = 40;
+        const margin = (this.opts.frameThicknessX - cubeSize) / 2;
+
+        let x = this.opts.canvasMargin + margin;
+
+        let y;
+
+        if (value == 1) {
+            value = 64;
+        }
+
+        if (owner == 0) {
+            y = (this.opts.canvasHeight - cubeSize) / 2;
+        }
+        else if (owner == -1) {
+            y = this.opts.canvasMargin + this.opts.frameThicknessY;
+        }
+        else {
+            y = this.opts.canvasHeight - this.opts.canvasMargin - this.opts.frameThicknessY - cubeSize;
+        }
+
+
+        this.ctx.fillStyle = WHITE;
+        this.ctx.strokeStyle = BLACK;
+
+        this.ctx.fillRect(x, y, cubeSize, cubeSize);
+        this.ctx.strokeRect(x, y, cubeSize, cubeSize);
+
+        this.ctx.fillStyle = BLACK;
+
+        this.ctx.fillText(value, (x + cubeSize / 2), y + cubeSize / 2 + 5);
+    }
 }
 
 function degToRad(degrees) {
@@ -317,5 +356,7 @@ function xgidToGame(xgid) {
         players: player,
         playerBarCheckers: charToCount(checkers.charCodeAt(25)),
         oppBarCheckers: charToCount(checkers.charCodeAt(0)),
+        cube: cube,
+        cubeOwner: cubeOwner,
     }
 }
