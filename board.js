@@ -155,6 +155,8 @@ class Diagram {
 
         this.drawCheckersOnBar();
         this.drawCube(this.game.cubeOwner, this.game.cube);
+
+        this.drawCheckersOffBoard();
     }
 
     drawCanvas() {
@@ -296,6 +298,45 @@ class Diagram {
 
         this.ctx.fillText(value, (x + cubeSize / 2), y + cubeSize / 2 + 5);
     }
+
+    drawCheckersOffBoard() {
+        const offCheckerX = 40; // todo: should be radius / 2
+        const offCheckerY = 8;
+
+        this.ctx.strokeStyle = BLACK;
+
+        let x = this.opts.canvasWidth - this.opts.canvasMargin - (this.opts.frameThicknessX + offCheckerX) / 2;
+
+        // Opponent
+        let y = this.opts.canvasMargin + this.opts.frameThicknessY;
+
+        this.ctx.fillStyle = this.opts.player2.checkerColor;
+
+
+        for (let i = 0; i < this.game.opponentOffCheckers; i++) {
+            this.ctx.fillRect(x, y, offCheckerX, offCheckerY);
+            this.ctx.strokeRect(x, y, offCheckerX, offCheckerY);
+            y = y + 10;
+            // Add extra space between every 5 checkers
+            if (i % 5 == 4) {
+                y = y + 5;
+            }
+        }
+
+        // Player
+        y = this.opts.canvasHeight - this.opts.canvasMargin - this.opts.frameThicknessY - offCheckerY;
+        this.ctx.fillStyle = this.opts.player1.checkerColor;
+
+        for (let i = 0; i < this.game.playerOffCheckers; i++) {
+            this.ctx.fillRect(x, y, offCheckerX, offCheckerY);
+            this.ctx.strokeRect(x, y, offCheckerX, offCheckerY);
+            y = y - 10;
+            // Add extra space between every 5 checkers
+            if (i % 5 == 4) {
+                y = y - 5;
+            }
+        }
+    }
 }
 
 function degToRad(degrees) {
@@ -332,31 +373,44 @@ function xgidToGame(xgid) {
     let checkerCount = Array();
     let player = Array();
 
+    let playerOffCheckers = 15
+    let oppOffCheckers = 15
+
     for (let i = 1; i < 25; i++) {
         let char = checkers.charCodeAt(i);
+        let count = charToCount(char)
+        checkerCount.push(count);
         if (char == '-'.charCodeAt(0)) {
-            checkerCount.push(0);
             player.push(0);
         }
         else if (char < 'Z'.charCodeAt(0)) {
             player.push(1)
-            checkerCount.push(charToCount(char));
+            playerOffCheckers -= count;
         }
         else if (char >= 'a'.charCodeAt(0)) {
             player.push(-1)
-            checkerCount.push(charToCount(char));
+            oppOffCheckers -= count;
         }
         else {
             console.log("Unknown character: " + char)
         }
     }
 
+    let playerBarCheckers = charToCount(checkers.charCodeAt(25))
+    let oppBarCheckers = charToCount(checkers.charCodeAt(0))
+
+    playerOffCheckers -= playerBarCheckers;
+    oppOffCheckers -= oppBarCheckers;
+
+
     return {
         checkerCount: checkerCount,
         players: player,
-        playerBarCheckers: charToCount(checkers.charCodeAt(25)),
-        oppBarCheckers: charToCount(checkers.charCodeAt(0)),
+        playerBarCheckers: playerBarCheckers,
+        oppBarCheckers: oppBarCheckers,
         cube: cube,
         cubeOwner: cubeOwner,
+        playerOffCheckers: playerOffCheckers,
+        opponentOffCheckers: oppOffCheckers,
     }
 }
