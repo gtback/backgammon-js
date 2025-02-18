@@ -1,14 +1,14 @@
 // SPDX-FileCopyrightText: 2022-2023 Greg Back <git@gregback.net>
 // SPDX-License-Identifier: MIT
 
-black = 'rgb(0, 0, 0)';
-brown = 'rgb(153,102,51)';
-red = 'rgb(255, 0, 0)';
-white = 'rgb(255, 255, 255)';
-green = 'rgb(0,127,0)';
+const BLACK = 'rgb(0, 0, 0)';
+const BROWN = 'rgb(153,102,51)';
+const RED = 'rgb(255, 0, 0)';
+const WHITE = 'rgb(255, 255, 255)';
+const GREEN = 'rgb(0,127,0)';
 
-blue = 'rgb(0, 127, 255)';
-yellow = 'rgb(255, 255, 0)';
+const BLUE = 'rgb(0, 127, 255)';
+const YELLOW = 'rgb(255, 255, 0)';
 
 const DEFAULT_OPTIONS = {
     canvasWidth: 640,
@@ -16,21 +16,21 @@ const DEFAULT_OPTIONS = {
     canvasMargin: 40,
     frameThickness: 25,
     barThickness: 40,
-    frameColor: brown,
-    boardBackground: green,
-    oddPoints: red,
-    evenPoints: white,
+    frameColor: BROWN,
+    boardBackground: GREEN,
+    oddPoints: RED,
+    evenPoints: WHITE,
     player1: {
-        checkerColor: black,
-        textColor: white,
+        checkerColor: BLACK,
+        textColor: WHITE,
     },
     player2: {
-        checkerColor: white,
-        textColor: black,
+        checkerColor: WHITE,
+        textColor: BLACK,
     },
 };
 
-starting = "XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10"
+const STARTING_POSITION = "XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10"
 
 class Point {
     constructor(index, board, opts) {
@@ -68,7 +68,7 @@ class Point {
         ctx.fillStyle = this.index % 2 == 0 ? this.opts.oddPoints : this.opts.evenPoints;
         // The stroke style is the opposite of the fill style
         // ctx.strokeStyle = this.index % 2 == 0 ? this.opts.evenPoints : this.opts.oddPoints;
-        ctx.strokeStyle = black;
+        ctx.strokeStyle = BLACK;
 
         const pointHeight = this.board.height * 0.45;
         let tip = this.baseLine + this.yDirection * pointHeight;
@@ -83,7 +83,7 @@ class Point {
         ctx.fill();
 
         // Label point number (always black, not configurable)
-        ctx.fillStyle = black;
+        ctx.fillStyle = BLACK;
         ctx.fillText(this.index + 1, this.midpoint, this.textPoint);
     }
 };
@@ -92,7 +92,7 @@ class Diagram {
     constructor(canvas, game) {
         this.canvas = canvas;
         if (game == null) {
-            game = starting;
+            game = STARTING_POSITION;
         }
         this.game = xgidToGame(game);
         this.ctx = canvas.getContext('2d');
@@ -155,7 +155,7 @@ class Diagram {
 
     drawCanvas() {
         this.ctx.lineWidth = 5;
-        this.ctx.strokeStyle = black; // always a black border around the canvas
+        this.ctx.strokeStyle = BLACK; // always a black border around the canvas
         this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
@@ -163,7 +163,7 @@ class Diagram {
         this.ctx.fillStyle = this.opts.frameColor;
         this.ctx.fillRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
         this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = black;
+        this.ctx.strokeStyle = BLACK;
         this.ctx.strokeRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height);
     }
 
@@ -183,7 +183,7 @@ class Diagram {
         this.ctx.fillRect(this.board.x + this.board.width / 2, this.board.y, this.opts.barThickness, this.board.height);
 
         // Draw frame around board to clean up point strokes
-        this.ctx.strokeStyle = black;
+        this.ctx.strokeStyle = BLACK;
         this.ctx.strokeRect(this.board.x, this.board.y, this.board.width / 2, this.board.height);
         this.ctx.strokeRect(this.board.x + (this.board.width / 2) + this.opts.barThickness, this.board.y, this.board.width / 2, this.board.height);
     }
@@ -231,29 +231,30 @@ function degToRad(degrees) {
 };
 
 function xgidToGame(xgid) {
-    const regex = /(XGID=)?([\-A-Oa-o]{26})\:(\d+)\:(\-?[01])\:(\-?1)\:([0-6][0-6])\:(\d+)\:(\d+)\:([0-3])\:(\d+)\:.+/;
-    match = xgid.match(regex);
+    const regex = /(XGID=)?([-A-Oa-o]{26}):(\d+):(-?[01]):(-?1):([0-6][0-6]):(\d+):(\d+):([0-3]):(\d+):.+/;
+    let match = xgid.match(regex);
     if (match == null) {
         //TODO
     }
-    // console.log(match);
-    checkers = match[2];
-    cube = 2 ** match[3];
-    cubeOwner = match[4];
-    // Check that if cube = 1, owner is 0
-    turn = match[5];
-    roll = match[6];
-    playerScore = match[7];
-    oppScore = match[8];
-    gameOptions = match[9];
-    matchDuration = match[10];
-    xxx = match[11]; // ???
 
-    checkerCount = Array();
-    player = Array();
+    let checkers = match[2];
+    let cube = 2 ** match[3];
+    let cubeOwner = match[4];
+    // Check that if cube = 1, owner is 0
+    let turn = match[5];
+    let roll = match[6];
+    let playerScore = match[7];
+    let oppScore = match[8];
+    let gameOptions = match[9];
+    let matchDuration = match[10];
+    let xxx = match[11]; // ???
+
+    let checkerCount = Array();
+    let player = Array();
+
     // TODO: handle checkers on bar (checkers[0] and checkers[25])
     for (let i = 1; i < 25; i++) {
-        char = checkers.charCodeAt(i);
+        let char = checkers.charCodeAt(i);
         if (char == '-'.charCodeAt(0)) {
             checkerCount.push(0);
             player.push(0);
@@ -270,8 +271,7 @@ function xgidToGame(xgid) {
             console.log("Unknown character: " + char)
         }
     }
-    // console.log(checkerCount);
-    // console.log(player);
+
     return {
         checkerCount: checkerCount,
         players: player,
