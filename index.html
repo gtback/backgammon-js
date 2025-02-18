@@ -51,15 +51,19 @@
   <div>
     <label for="user_login">Game ID:</label>
     <input type="text" id="game_id" size="45">
-    <button onclick="drawBoard('game_id')">Draw Board</button>
+    <button onclick="drawBoard()">Draw Board</button>
   </div>
 
   <script>
     function drawBoard(elementId) {
-      gameId = null;
-      element = document.getElementById(elementId);
-      if (element !== null) {
+      let gameId = null;
+      element = document.getElementById('game_id');
+      if (element.value != "") {
         gameId = element.value;
+      }
+      else if (window.location.hash != "") {
+        gameId = window.location.hash;
+        element.value = gameId;
       }
       //console.log(gameId)
 
