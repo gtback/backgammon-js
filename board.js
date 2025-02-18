@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2022-2023 Greg Back <git@gregback.net>
+// SPDX-FileCopyrightText: Greg Back <git@gregback.net>
 // SPDX-License-Identifier: MIT
 
 const BLACK = 'rgb(0, 0, 0)';
