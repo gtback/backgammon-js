@@ -11,10 +11,11 @@ const BLUE = 'rgb(0, 127, 255)';
 const YELLOW = 'rgb(255, 255, 0)';
 
 const DEFAULT_OPTIONS = {
-    canvasWidth: 640,
+    canvasWidth: 690,
     canvasHeight: 560,
     canvasMargin: 40,
-    frameThickness: 25,
+    frameThicknessX: 50,
+    frameThicknessY: 25,
     barThickness: 40,
     frameColor: BROWN,
     boardBackground: GREEN,
@@ -117,11 +118,11 @@ class Diagram {
             height: frameHeight,
         }
 
-        const boardX = frameX + this.opts.frameThickness;
-        const boardY = frameY + this.opts.frameThickness;
+        const boardX = frameX + this.opts.frameThicknessX;
+        const boardY = frameY + this.opts.frameThicknessY;
 
-        const boardWidth = frameWidth - 2 * this.opts.frameThickness - this.opts.barThickness;
-        const boardHeight = frameHeight - 2 * this.opts.frameThickness;
+        const boardWidth = frameWidth - 2 * this.opts.frameThicknessX - this.opts.barThickness;
+        const boardHeight = frameHeight - 2 * this.opts.frameThicknessY;
 
         this.board = {
             x: boardX,
@@ -228,7 +229,7 @@ class Diagram {
     }
 
     drawCheckersOnBar() {
-        const barCenter = this.opts.canvasMargin + this.opts.frameThickness + (this.board.width / 2) + this.opts.barThickness / 2;
+        const barCenter = this.opts.canvasMargin + this.opts.frameThicknessX + (this.board.width / 2) + this.opts.barThickness / 2;
 
         if (this.game.oppBarCheckers > 0) {
             let y = this.board.y + (this.board.height * 2 / 3)
