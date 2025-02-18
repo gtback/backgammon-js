@@ -22,12 +22,12 @@ const DEFAULT_OPTIONS = {
     oddPoints: RED,
     evenPoints: WHITE,
     player1: {
-        checkerColor: BLACK,
-        textColor: WHITE,
-    },
-    player2: {
         checkerColor: WHITE,
         textColor: BLACK,
+    },
+    player2: {
+        checkerColor: BLACK,
+        textColor: WHITE,
     },
 };
 
