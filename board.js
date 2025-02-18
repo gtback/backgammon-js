@@ -70,6 +70,7 @@ class Point {
         // The stroke style is the opposite of the fill style
         // ctx.strokeStyle = this.index % 2 == 0 ? this.opts.evenPoints : this.opts.oddPoints;
         ctx.strokeStyle = BLACK;
+        ctx.textAlign = 'center';
 
         const pointHeight = this.board.height * 0.45;
         let tip = this.baseLine + this.yDirection * pointHeight;
@@ -144,6 +145,9 @@ class Diagram {
         this.drawFrame();
         this.drawBoard();
 
+        // TODO: Assumes a match, not money game
+        this.drawPlayerScores();
+
         for (let i = 1; i < 25; i++) {
             let numCheckers = this.game.checkerCount[i - 1];
             let player = this.game.players[i - 1] == 1 ? this.opts.player1 : this.opts.player2;
@@ -180,7 +184,6 @@ class Diagram {
         this.ctx.lineWidth = 1;
 
         this.ctx.font = '18px arial';
-        this.ctx.textAlign = 'center';
 
         this.points.forEach((point) => point.draw(this.ctx));
 
@@ -194,8 +197,26 @@ class Diagram {
         this.ctx.strokeRect(this.board.x + (this.board.width / 2) + this.opts.barThickness, this.board.y, this.board.width / 2, this.board.height);
     }
 
+    drawPlayerScores() {
+        let x = this.opts.canvasMargin;
+        this.ctx.fillStyle = BLACK;
+
+        this.ctx.textAlign = 'left';
+
+        // Opponent
+        let y = this.opts.canvasMargin - 8;
+        this.ctx.fillText(`Opponent Score: ${this.game.oppScore}/${this.game.duration}`, x, y)
+
+        //Player
+        y = this.opts.canvasHeight - this.opts.canvasMargin + 18;
+        this.ctx.fillText(`Player Score: ${this.game.playerScore}/${this.game.duration}`, x, y)
+
+    }
+
     drawCheckers(pointNum, numCheckers, player) {
         let radius = this.radius;
+
+        this.ctx.textAlign = 'center';
 
         this.ctx.fillStyle = player.checkerColor;
 
@@ -233,6 +254,8 @@ class Diagram {
 
     drawCheckersOnBar() {
         const barCenter = this.opts.canvasMargin + this.opts.frameThicknessX + (this.board.width / 2) + this.opts.barThickness / 2;
+
+        this.ctx.textAlign = 'center';
 
         if (this.game.oppBarCheckers > 0) {
             let y = this.board.y + (this.board.height * 2 / 3)
@@ -290,6 +313,7 @@ class Diagram {
 
         this.ctx.fillStyle = WHITE;
         this.ctx.strokeStyle = BLACK;
+        this.ctx.textAlign = 'center';
 
         this.ctx.fillRect(x, y, cubeSize, cubeSize);
         this.ctx.strokeRect(x, y, cubeSize, cubeSize);
@@ -412,5 +436,8 @@ function xgidToGame(xgid) {
         cubeOwner: cubeOwner,
         playerOffCheckers: playerOffCheckers,
         opponentOffCheckers: oppOffCheckers,
+        playerScore: playerScore,
+        oppScore: oppScore,
+        duration: matchDuration,
     }
 }
