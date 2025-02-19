@@ -2,4 +2,8 @@ version = 1
 SPDX-PackageName = "backgammon-js"
 SPDX-PackageSupplier = "Greg Back <git@gregback.net>"
 SPDX-PackageDownloadLocation = "https://github.com/gtback/backgammon-js"
-annotations = []
+
+[[annotations]]
+path = 'renovate.json'
+SPDX-FileCopyrightText = "Greg Back <git@gregback.net>"
+SPDX-License-Identifier = "CC0-1.0"
