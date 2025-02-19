@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: MIT
 
 const BLACK = 'rgb(0, 0, 0)';
-const BROWN = 'rgb(153,102,51)';
+const GRAY = 'rgb(60, 60, 60)'
+const BROWN = 'rgb(153, 102, 51)';
+const DARKBROWN = 'rgb(111, 70, 50)';
 const RED = 'rgb(255, 0, 0)';
 const WHITE = 'rgb(255, 255, 255)';
-const GREEN = 'rgb(0,127,0)';
+const GREEN = 'rgb(0, 127, 0)';
 
 const BLUE = 'rgb(0, 127, 255)';
 const YELLOW = 'rgb(255, 255, 0)';
@@ -17,16 +19,18 @@ const DEFAULT_OPTIONS = {
     frameThicknessX: 50,
     frameThicknessY: 25,
     barThickness: 40,
-    frameColor: BROWN,
+    frameColor: DARKBROWN,
     boardBackground: GREEN,
     oddPoints: RED,
     evenPoints: WHITE,
     player1: {
         checkerColor: WHITE,
+        checkerBorder: BLACK,
         textColor: BLACK,
     },
     player2: {
         checkerColor: BLACK,
+        checkerBorder: GRAY,
         textColor: WHITE,
     },
 };
@@ -219,14 +223,15 @@ class Diagram {
         this.ctx.textAlign = 'center';
 
         this.ctx.fillStyle = player.checkerColor;
+        this.ctx.strokeStyle = player.checkerBorder;
 
         // Use point-1 since we number points 1-24 but the code expects 0-23.
         let point = this.points[pointNum - 1];
 
         // Space above the baseline before starting checkers
-        const pointPadding = 2;
+        const pointPadding = 1;
         // Space between checkers on the same point
-        const pointSpacing = 2;
+        const pointSpacing = 1;
 
         let maxCheckersPerPoint = 5;
 
