@@ -93,7 +93,7 @@ class Point {
   }
 };
 
-export class Diagram {
+class Diagram {
   constructor (canvas, game) {
     this.canvas = canvas
     if (game === null) {
