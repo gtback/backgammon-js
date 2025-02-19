@@ -1,0 +1,5 @@
+version = 1
+SPDX-PackageName = "backgammon-js"
+SPDX-PackageSupplier = "Greg Back <git@gregback.net>"
+SPDX-PackageDownloadLocation = "https://github.com/gtback/backgammon-js"
+annotations = []
