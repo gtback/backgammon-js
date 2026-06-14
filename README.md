@@ -36,9 +36,10 @@ diagram.draw();
 
 See `index.html` for a live demo with an interactive position input.
 
-## Configuration
+## Defaults
 
-Sizes and colors are controlled by `DEFAULT_OPTIONS` in `board.js`:
+The `Diagram` class does not currently accept custom options. The built-in defaults (defined as
+`DEFAULT_OPTIONS` in `board.js`) are:
 
 | Option | Default | Description |
 |---|---|---|
