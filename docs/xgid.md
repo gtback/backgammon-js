@@ -17,17 +17,17 @@ XGID=<position>:<cube>:<cubeOwner>:<turn>:<dice>:<playerScore>:<oppScore>:<crawf
 
 The `XGID=` prefix is optional. Fields are separated by colons.
 
+Throughout this document, **Player** refers to the bottom player as rendered by the diagram
+(uppercase characters in the position string), and **Opponent** refers to the top player
+(lowercase characters). These terms are used interchangeably with "bottom" and "top" when
+describing board orientation.
+
 ## Fields
 
 ### 1. Position (26 characters)
 
 Encodes checker placement across all 26 locations: the Opponent's bar, points 1–24, and the
 Player's bar.
-
-Throughout this document, **Player** refers to the bottom player as rendered by the diagram
-(uppercase characters in the position string), and **Opponent** refers to the top player
-(lowercase characters). These terms are used interchangeably with "bottom" and "top" when
-describing board orientation.
 
 | Index | Location |
 |---|---|
@@ -122,10 +122,10 @@ Decoded:
 | Position | `-b----E-C---eE---c-e----B-` | Standard starting position (see below) |
 | Cube | `0` | Cube = 1 |
 | Cube owner | `0` | Centered |
-| Turn | `1` | Bottom player to move |
+| Turn | `1` | Player to move |
 | Dice | `21` | Rolled 2-1 |
 | Player score | `0` | 0 points |
-| Opp score | `0` | 0 points |
+| Opponent score | `0` | 0 points |
 | Crawford/Jacoby | `3` | Jacoby and Beaver (money game) |
 | Match length | `0` | Unlimited |
 | Max cube | `10` | Up to 2^10 = 1024 |
@@ -160,7 +160,7 @@ Position string breakdown for the starting position:
 | Position | Yes |
 | Cube value and owner | Yes |
 | Player and opponent scores | Yes |
-| Dice | Parsed, not yet drawn |
+| Dice | Parsed (numeric rolls only; `D`/`B`/`R` not handled), not yet drawn |
 | Turn, match length, max cube | Parsed, not yet drawn/used |
 
 Adding dice rendering is a planned future enhancement.
