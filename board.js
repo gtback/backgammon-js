@@ -96,7 +96,7 @@ class Point {
 class Diagram {
   constructor (canvas, game) {
     this.canvas = canvas
-    if (game === null) {
+    if (game == null) {
       game = STARTING_POSITION
     }
     this.game = xgidToGame(game)

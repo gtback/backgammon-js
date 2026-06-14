@@ -21,20 +21,22 @@ Include `board.js` in your page, then create a `Diagram` and call `.draw()`:
 </canvas>
 
 <script>
-  const diagram = new Diagram(document.querySelector('#diagram'));
+  const canvas = document.querySelector('#diagram');
+  const diagram = new Diagram(canvas);
   diagram.draw();
 </script>
 ```
 
-This draws the board in the standard starting position. To draw a specific position, pass an XGID
-string as the second argument:
+Omitting the second argument (or passing `null`) draws the standard starting position. To draw a
+specific position, pass an XGID string:
 
 ```js
 const diagram = new Diagram(canvas, 'XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10');
 diagram.draw();
 ```
 
-See `index.html` for a live demo with an interactive position input.
+See `index.html` for a live demo with an interactive position input. The demo also supports
+loading a position via URL fragment: `index.html#XGID=...`.
 
 ## Defaults
 
@@ -59,6 +61,13 @@ The `Diagram` class does not currently accept custom options. The built-in defau
 | `player2.checkerColor` | black | Opponent's checker fill color |
 | `player2.checkerBorder` | gray | Opponent's checker border color |
 | `player2.textColor` | white | Text color on Opponent's checkers |
+
+## Notes
+
+- **Checker stacking**: points with more than 5 checkers draw only 5 pieces and show the total
+  count as a number on the top checker.
+- **Centered cube**: when the cube has not yet been turned (XGID cube field `0`), the diagram
+  shows "64" — the standard backgammon convention for the unclaimed doubling cube.
 
 ## XGID Format
 
