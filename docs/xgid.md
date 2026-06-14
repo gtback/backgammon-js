@@ -77,7 +77,7 @@ The face value of the doubling cube is `2^field`, so:
 | `D` | Player has doubled; opponent must take or drop |
 | `B` | Player doubled; opponent beavered |
 | `R` | Player doubled; opponent beavered; player racconed |
-| `xy` | Player rolled `x` and `y` (e.g., `21` = 2-1, `63` = 6-3) |
+| `xy` | Player rolled `x` and `y` — each character is one die face (e.g., `21` = 2 and 1, `63` = 6 and 3) |
 
 ### 6. Player score
 
@@ -158,7 +158,7 @@ Position string breakdown for the starting position:
 | Field | Rendered |
 |---|---|
 | Position | Yes |
-| Cube value and owner | Yes |
+| Cube value and owner | Yes — a value of 1 (XGID field `0`) displays as **64**, the standard backgammon convention for the unclaimed centered cube |
 | Player and opponent scores | Yes |
 | Dice | Parsed (numeric rolls only; `D`/`B`/`R` not handled), not yet drawn |
 | Turn, match length, max cube | Parsed, not yet drawn/used |
