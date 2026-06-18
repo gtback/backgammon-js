@@ -65,6 +65,7 @@ class Point {
   }
 
   draw (ctx) {
+    ctx.save()
     const pointGap = 1
 
     // We start counting at 0, so the "oddPoints" are at index 0, 2, 4, ... but
@@ -90,6 +91,7 @@ class Point {
     // Label point number (always black, not configurable)
     ctx.fillStyle = BLACK
     ctx.fillText(this.index + 1, this.midpoint, this.textPoint)
+    ctx.restore()
   }
 };
 
@@ -169,14 +171,17 @@ class Diagram {
   }
 
   drawCanvas () {
+    this.ctx.save()
     this.ctx.lineWidth = 5
     this.ctx.strokeStyle = BLACK // always a black border around the canvas
     this.ctx.beginPath()
     this.ctx.roundRect(0, 0, this.canvas.width, this.canvas.height, 8)
     this.ctx.stroke()
+    this.ctx.restore()
   }
 
   drawFrame () {
+    this.ctx.save()
     this.ctx.fillStyle = this.opts.frameColor
     this.ctx.beginPath()
     this.ctx.roundRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height, 8)
@@ -184,9 +189,11 @@ class Diagram {
     this.ctx.lineWidth = 1
     this.ctx.strokeStyle = BLACK
     this.ctx.stroke()
+    this.ctx.restore()
   }
 
   drawBoard () {
+    this.ctx.save()
     this.ctx.fillStyle = this.opts.boardBackground
     this.ctx.fillRect(this.board.x, this.board.y, this.board.width + this.opts.barThickness, this.board.height)
 
@@ -204,9 +211,11 @@ class Diagram {
     this.ctx.strokeStyle = BLACK
     this.ctx.strokeRect(this.board.x, this.board.y, this.board.width / 2, this.board.height)
     this.ctx.strokeRect(this.board.x + (this.board.width / 2) + this.opts.barThickness, this.board.y, this.board.width / 2, this.board.height)
+    this.ctx.restore()
   }
 
   drawPlayerScores () {
+    this.ctx.save()
     const x = this.opts.canvasMargin
     this.ctx.fillStyle = BLACK
 
@@ -219,9 +228,11 @@ class Diagram {
     // Player
     y = this.opts.canvasHeight - this.opts.canvasMargin + 18
     this.ctx.fillText(`Player Score: ${this.game.playerScore}/${this.game.duration}`, x, y)
+    this.ctx.restore()
   }
 
   drawCheckers (pointNum, numCheckers, player) {
+    this.ctx.save()
     const radius = this.radius
 
     this.ctx.textAlign = 'center'
@@ -259,9 +270,11 @@ class Diagram {
 
       this.ctx.fillText(numCheckers, x, y)
     }
+    this.ctx.restore()
   }
 
   drawCheckersOnBar () {
+    this.ctx.save()
     const barCenter = this.opts.canvasMargin + this.opts.frameThicknessX + (this.board.width / 2) + this.opts.barThickness / 2
 
     this.ctx.textAlign = 'center'
@@ -291,6 +304,7 @@ class Diagram {
         this.ctx.fillText(this.game.playerBarCheckers, barCenter, y + (this.radius - 12))
       }
     }
+    this.ctx.restore()
   }
 
   drawCube (owner, value) {
@@ -298,6 +312,7 @@ class Diagram {
   // - 0 for a centered cube
   // - 1 if the cube is owned by the player
   // - -1 if the cube is owned by the opponent
+    this.ctx.save()
     const cubeSize = 40
     const margin = (this.opts.frameThicknessX - cubeSize) / 2
 
@@ -329,11 +344,14 @@ class Diagram {
     this.ctx.fillStyle = BLACK
 
     this.ctx.fillText(value, (x + cubeSize / 2), y + cubeSize / 2 + 5)
+    this.ctx.restore()
   }
 
   drawDice () {
+    this.ctx.save()
     const roll = this.game.roll
     if (roll == null || roll.length !== 2) {
+      this.ctx.restore()
       return
     }
 
@@ -359,12 +377,14 @@ class Diagram {
 
       drawDie(this.ctx, railX, topY, dieSize, 1, dieColor, pipColor)
       drawDie(this.ctx, railX, topY + dieSize + gap, dieSize, 1, dieColor, pipColor)
+      this.ctx.restore()
       return
     }
 
     const d1 = parseInt(roll[0], 10)
     const d2 = parseInt(roll[1], 10)
     if (Number.isNaN(d1) || Number.isNaN(d2)) {
+      this.ctx.restore()
       return
     }
 
@@ -380,9 +400,11 @@ class Diagram {
 
     drawDie(this.ctx, halfCenterX - dieSize - gap / 2, y, dieSize, d1, dieColor, pipColor)
     drawDie(this.ctx, halfCenterX + gap / 2, y, dieSize, d2, dieColor, pipColor)
+    this.ctx.restore()
   }
 
   drawCheckersOffBoard () {
+    this.ctx.save()
     const offCheckerX = 40 // todo: should be radius / 2
     const offCheckerY = 8
 
@@ -422,6 +444,7 @@ class Diagram {
         y = y - 5
       }
     }
+    this.ctx.restore()
   }
 }
 
@@ -431,6 +454,7 @@ function degToRad (degrees) {
 
 // Draw a single die at top-left (x, y) of side `size`, showing `value` (1-6).
 function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
+  ctx.save()
   const radius = size * 0.15
 
   ctx.fillStyle = dieColor
@@ -467,6 +491,7 @@ function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
     ctx.arc(px, py, pipRadius, degToRad(0), degToRad(360), false)
     ctx.fill()
   })
+  ctx.restore()
 };
 
 function charToCount (char) {
