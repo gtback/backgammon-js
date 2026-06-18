@@ -54,7 +54,23 @@
     <button onclick="drawBoard()">Draw Board</button>
   </div>
 
+  <div>
+    <p>Or try an example position:</p>
+    <ul>
+      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:1:31:0:0:3:0:10')">Opening roll 3-1</button></li>
+      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:1:65:0:0:3:0:10')">Opening roll 6-5 (lover's leap)</button></li>
+      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10')">Opening roll 2-1</button></li>
+      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:-1:52:0:0:3:0:10')">Opponent's roll 5-2</button></li>
+      <li><button onclick="loadExample('XGID=-BBC---------------cccbbb-:0:0:1:00:0:0:3:0:10')">Cube decision (race lead, player on roll)</button></li>
+    </ul>
+  </div>
+
   <script>
+    function loadExample(xgid) {
+      document.getElementById('game_id').value = xgid;
+      drawBoard();
+    }
+
     function drawBoard() {
       let gameId = null;
       const element = document.getElementById('game_id');

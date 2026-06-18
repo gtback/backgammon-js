@@ -163,7 +163,5 @@ Position string breakdown for the starting position:
 | Position | Yes |
 | Cube value and owner | Yes — a value of 1 (XGID field `0`) displays as **64**, the standard backgammon convention for the unclaimed centered cube |
 | Player and opponent scores | Yes |
-| Dice | Parsed (numeric rolls only; `D`/`B`/`R` not handled), not yet drawn |
+| Dice | Yes — numeric rolls only; `D`/`B`/`R` not handled (parsing fails silently) |
 | Turn, match length, max cube | Parsed, not yet drawn/used |
-
-Adding dice rendering is a planned future enhancement.

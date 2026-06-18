@@ -46,8 +46,3 @@ New files should follow the conventions used by existing files:
 | `board.js` | The library — Canvas renderer and XGID parser |
 | `index.html` | Interactive demo |
 | `docs/xgid.md` | XGID position format reference |
-
-## Planned work
-
-- **Dice rendering** — the dice roll is already parsed from the XGID string (`board.js:389`) but
-  not yet drawn on the canvas.

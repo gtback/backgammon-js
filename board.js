@@ -164,6 +164,8 @@ class Diagram {
     this.drawCube(this.game.cubeOwner, this.game.cube)
 
     this.drawCheckersOffBoard()
+
+    this.drawDice()
   }
 
   drawCanvas () {
@@ -323,6 +325,57 @@ class Diagram {
     this.ctx.fillText(value, (x + cubeSize / 2), y + cubeSize / 2 + 5)
   }
 
+  drawDice () {
+    const roll = this.game.roll
+    if (roll == null || roll.length !== 2) {
+      return
+    }
+
+    // Dice take the active player's colors: player1 (white die, black pips) or
+    // player2 (black die, white pips).
+    const isPlayer = this.game.turn === '1'
+    const colors = isPlayer ? this.opts.player1 : this.opts.player2
+    const dieColor = colors.checkerColor
+    const pipColor = colors.textColor
+
+    const dieSize = 36
+
+    if (roll === '00') {
+      // Cube decision: the player is on roll but hasn't rolled yet. Show two
+      // dice (each a 1) stacked on the frame. Always use the right rail (the
+      // left rail holds the cube), centered vertically so the dice stay clear
+      // of the off-board checkers, which stack from the top and bottom ends.
+      // The die color still indicates whose decision it is.
+      const gap = 8
+      const railX = this.opts.canvasWidth - this.opts.canvasMargin -
+        this.opts.frameThicknessX + (this.opts.frameThicknessX - dieSize) / 2
+      const topY = (this.opts.canvasHeight - (2 * dieSize + gap)) / 2
+
+      drawDie(this.ctx, railX, topY, dieSize, 1, dieColor, pipColor)
+      drawDie(this.ctx, railX, topY + dieSize + gap, dieSize, 1, dieColor, pipColor)
+      return
+    }
+
+    const d1 = parseInt(roll[0], 10)
+    const d2 = parseInt(roll[1], 10)
+    if (Number.isNaN(d1) || Number.isNaN(d2)) {
+      return
+    }
+
+    // Actual roll: two dice side by side, vertically centered, in the active
+    // player's right half of the board. Players face each other, so the player
+    // (bottom) rolls in the screen-right half and the opponent (top) in the
+    // screen-left half.
+    const halfCenterX = isPlayer
+      ? this.board.x + this.board.width / 2 + this.opts.barThickness + this.board.width / 4
+      : this.board.x + this.board.width / 4
+    const y = this.board.y + this.board.height / 2 - dieSize / 2
+    const gap = 12
+
+    drawDie(this.ctx, halfCenterX - dieSize - gap / 2, y, dieSize, d1, dieColor, pipColor)
+    drawDie(this.ctx, halfCenterX + gap / 2, y, dieSize, d2, dieColor, pipColor)
+  }
+
   drawCheckersOffBoard () {
     const offCheckerX = 40 // todo: should be radius / 2
     const offCheckerY = 8
@@ -364,6 +417,46 @@ class Diagram {
 
 function degToRad (degrees) {
   return degrees * Math.PI / 180
+};
+
+// Draw a single die at top-left (x, y) of side `size`, showing `value` (1-6).
+function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
+  const radius = size * 0.15
+
+  ctx.fillStyle = dieColor
+  ctx.strokeStyle = BLACK
+  ctx.lineWidth = 1
+
+  ctx.beginPath()
+  ctx.roundRect(x, y, size, size, radius)
+  ctx.fill()
+  ctx.stroke()
+
+  // Pip centers on a 3x3 grid.
+  const left = x + size * 0.25
+  const midX = x + size * 0.5
+  const right = x + size * 0.75
+  const top = y + size * 0.25
+  const midY = y + size * 0.5
+  const bottom = y + size * 0.75
+
+  // Pip positions for each die value.
+  const pips = {
+    1: [[midX, midY]],
+    2: [[left, top], [right, bottom]],
+    3: [[left, top], [midX, midY], [right, bottom]],
+    4: [[left, top], [right, top], [left, bottom], [right, bottom]],
+    5: [[left, top], [right, top], [midX, midY], [left, bottom], [right, bottom]],
+    6: [[left, top], [right, top], [left, midY], [right, midY], [left, bottom], [right, bottom]]
+  }[value] || []
+
+  const pipRadius = size * 0.1
+  ctx.fillStyle = pipColor
+  pips.forEach(([px, py]) => {
+    ctx.beginPath()
+    ctx.arc(px, py, pipRadius, degToRad(0), degToRad(360), false)
+    ctx.fill()
+  })
 };
 
 function charToCount (char) {
