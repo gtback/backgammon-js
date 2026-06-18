@@ -181,7 +181,14 @@ class Diagram {
 
   drawFrame () {
     this.ctx.save()
-    this.ctx.fillStyle = this.opts.frameColor
+    const grad = this.ctx.createLinearGradient(
+      this.frame.x, this.frame.y,
+      this.frame.x, this.frame.y + this.frame.height
+    )
+    grad.addColorStop(0, WALNUT_LIGHT)
+    grad.addColorStop(0.45, WALNUT)
+    grad.addColorStop(1, WALNUT_DARK)
+    this.ctx.fillStyle = grad
     this.ctx.beginPath()
     this.ctx.roundRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height, 8)
     this.ctx.fill()
