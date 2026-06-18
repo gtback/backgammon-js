@@ -79,6 +79,9 @@ The face value of the doubling cube is `2^field`, so:
 | `R` | Player doubled; opponent beavered; player racconed |
 | `xy` | Player rolled `x` and `y` — each character is one die face (e.g., `21` = 2 and 1, `63` = 6 and 3) |
 
+`D`, `B`, and `R` are defined by the XGID spec but are not currently parsed by this library;
+passing an XGID with these values will cause parsing to fail silently.
+
 ### 6. Player score
 
 Player's current match score in points.
