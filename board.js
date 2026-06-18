@@ -236,7 +236,7 @@ class Diagram {
     this.ctx.save()
     const x = this.opts.canvasMargin
     this.ctx.fillStyle = BLACK
-
+    this.ctx.font = '14px arial'
     this.ctx.textAlign = 'left'
 
     // Opponent
@@ -399,6 +399,7 @@ class Diagram {
     this.ctx.stroke()
 
     this.ctx.fillStyle = BLACK
+    this.ctx.font = 'bold 18px arial'
 
     this.ctx.fillText(value, (x + cubeSize / 2), y + cubeSize / 2 + 5)
     this.ctx.restore()
