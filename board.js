@@ -25,12 +25,16 @@ const DEFAULT_OPTIONS = {
   player1: {
     checkerColor: WHITE,
     checkerBorder: BLACK,
-    textColor: BLACK
+    textColor: BLACK,
+    checkerHighlight: '#ffffff',
+    checkerShadow: '#d0d0d0'
   },
   player2: {
     checkerColor: BLACK,
     checkerBorder: GRAY,
-    textColor: WHITE
+    textColor: WHITE,
+    checkerHighlight: '#3d3d3d',
+    checkerShadow: '#1a1a1a'
   }
 }
 
@@ -269,10 +273,21 @@ class Diagram {
     const maxCheckersPerPoint = 5
 
     for (let i = 0; i < Math.min(numCheckers, maxCheckersPerPoint); i++) {
+      const cx = point.midpoint
+      const cy = point.baseLine + point.yDirection * (pointPadding + pointSpacing * i + (2 * radius * i) + radius)
+      const grad = this.ctx.createRadialGradient(
+        cx - radius * 0.15, cy - radius * 0.2, radius * 0.05,
+        cx, cy, radius
+      )
+      grad.addColorStop(0, player.checkerHighlight)
+      grad.addColorStop(1, player.checkerShadow)
+      this.ctx.fillStyle = grad
       this.ctx.beginPath()
-      this.ctx.arc(point.midpoint, point.baseLine + point.yDirection * (pointPadding + pointSpacing * i + (2 * radius * i) + radius), radius, degToRad(0), degToRad(360), false)
+      this.ctx.arc(cx, cy, radius, degToRad(0), degToRad(360), false)
       this.ctx.fill()
+      this.ctx.shadowColor = 'transparent'
       this.ctx.stroke()
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
     }
 
     if (numCheckers > maxCheckersPerPoint) {
@@ -302,29 +317,49 @@ class Diagram {
     this.ctx.shadowOffsetY = 2
 
     if (this.game.oppBarCheckers > 0) {
-      const y = this.board.y + (this.board.height * 2 / 3)
-      this.ctx.fillStyle = this.opts.player2.checkerColor
+      const cx = barCenter
+      const cy = this.board.y + (this.board.height * 2 / 3)
+      const player = this.opts.player2
+      const grad = this.ctx.createRadialGradient(
+        cx - this.radius * 0.15, cy - this.radius * 0.2, this.radius * 0.05,
+        cx, cy, this.radius
+      )
+      grad.addColorStop(0, player.checkerHighlight)
+      grad.addColorStop(1, player.checkerShadow)
+      this.ctx.fillStyle = grad
       this.ctx.beginPath()
-      this.ctx.arc(barCenter, y, this.radius, degToRad(0), degToRad(360), false)
+      this.ctx.arc(cx, cy, this.radius, degToRad(0), degToRad(360), false)
       this.ctx.fill()
+      this.ctx.shadowColor = 'transparent'
       this.ctx.stroke()
       if (this.game.oppBarCheckers > 1) {
-        this.ctx.fillStyle = this.opts.player2.textColor
-        this.ctx.fillText(this.game.oppBarCheckers, barCenter, y + (this.radius - 12))
+        this.ctx.fillStyle = player.textColor
+        this.ctx.fillText(this.game.oppBarCheckers, cx, cy + (this.radius - 12))
       }
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
     }
 
     if (this.game.playerBarCheckers > 0) {
-      const y = this.board.y + (this.board.height / 3)
-      this.ctx.fillStyle = this.opts.player1.checkerColor
+      const cx = barCenter
+      const cy = this.board.y + (this.board.height / 3)
+      const player = this.opts.player1
+      const grad = this.ctx.createRadialGradient(
+        cx - this.radius * 0.15, cy - this.radius * 0.2, this.radius * 0.05,
+        cx, cy, this.radius
+      )
+      grad.addColorStop(0, player.checkerHighlight)
+      grad.addColorStop(1, player.checkerShadow)
+      this.ctx.fillStyle = grad
       this.ctx.beginPath()
-      this.ctx.arc(barCenter, y, this.radius, degToRad(0), degToRad(360), false)
+      this.ctx.arc(cx, cy, this.radius, degToRad(0), degToRad(360), false)
       this.ctx.fill()
+      this.ctx.shadowColor = 'transparent'
       this.ctx.stroke()
       if (this.game.playerBarCheckers > 1) {
-        this.ctx.fillStyle = this.opts.player1.textColor
-        this.ctx.fillText(this.game.playerBarCheckers, barCenter, y + (this.radius - 12))
+        this.ctx.fillStyle = player.textColor
+        this.ctx.fillText(this.game.playerBarCheckers, cx, cy + (this.radius - 12))
       }
+      this.ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
     }
     this.ctx.restore()
   }
