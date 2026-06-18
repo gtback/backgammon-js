@@ -13,6 +13,17 @@
     body {
       margin: 20;
     }
+    #controls {
+      margin: 1em 0;
+    }
+    #color_pickers label {
+      display: inline-block;
+      margin-right: 1em;
+      font-size: 0.9em;
+    }
+    #color_pickers input[type=color] {
+      vertical-align: middle;
+    }
   </style>
   <script src="board.js"></script>
 </head>
@@ -21,31 +32,65 @@
   <h1>Backgammon-JS</h1>
   <p>This JavaScript library makes it easy to draw Backgammon boards.</p>
 
-  <p>For example, the diagram below is drawn with just the following code:</p>
+  <p>The diagram below uses the default starting position and default colors:</p>
 
-  <pre><code>
-  &lt;script src="board.js"&gt;&lt;/script&gt;
-  ...
-  &lt;canvas id="diagram1"&gt;
-    &lt;p&gt;Figure 1&lt;/p&gt;
-  &lt;/canvas&gt;
+  <pre><code>&lt;script src="board.js"&gt;&lt;/script&gt;
 
-  &lt;script&gt;
-    const diagram = new Diagram(document.querySelector('#diagram1'));
-    diagram.draw();
-  &lt;/script&gt;
-  </code></pre>
+&lt;canvas id="diagram1"&gt;&lt;p&gt;Backgammon board&lt;/p&gt;&lt;/canvas&gt;
+
+&lt;script&gt;
+  const diagram = new Diagram(document.querySelector('#diagram1'));
+  diagram.draw();
+&lt;/script&gt;</code></pre>
 
   <p>
-    The sizes and colors are all the default.
-    By default, the checkers are put in their starting positions.
-    However, you can enter a custom XGID to draw a board (checker positions only).
+    Pass an <a href="https://github.com/gtback/backgammon-js/blob/main/docs/xgid.md">XGID string</a>
+    as the second argument to draw a specific position. Pass a partial options object as the third
+    argument to customize colors — you only need the keys you want to change:
+  </p>
+
+  <pre><code>const diagram = new Diagram(canvas, xgid, {
+  frameColor: '#1a3a5c',
+  boardBackground: '#1f5f7a',
+  player1: { checkerColor: '#f5f0e6' }
+});
+diagram.draw();</code></pre>
+
+  <p>
+    <code>board.js</code> also exports a <code>THEMES</code> object with built-in named presets
+    (<code>Walnut</code>, <code>Midnight</code>, <code>Ocean</code>, <code>Slate</code>) that
+    can be passed directly:
+  </p>
+
+  <pre><code>const diagram = new Diagram(canvas, xgid, THEMES.Ocean);
+diagram.draw();</code></pre>
+
+  <p>
+    Coordinated shades — the frame gradient, point tips, and checker sheen — are derived
+    automatically from the base colors, so each theme is defined by just a handful of values.
+    Try the controls below to see it live:
   </p>
 
   <div>
     <canvas id="diagram1">
       <p>Figure 1</p>
     </canvas>
+  </div>
+
+  <div id="controls">
+    <p>
+      <label for="theme_select">Theme:</label>
+      <select id="theme_select"></select>
+    </p>
+    <p>Or adjust individual base colors:</p>
+    <div id="color_pickers">
+      <label>Frame <input type="color" data-key="frameColor"></label>
+      <label>Board <input type="color" data-key="boardBackground"></label>
+      <label>Odd points <input type="color" data-key="oddPoints"></label>
+      <label>Even points <input type="color" data-key="evenPoints"></label>
+      <label>Player 1 <input type="color" data-key="player1.checkerColor"></label>
+      <label>Player 2 <input type="color" data-key="player2.checkerColor"></label>
+    </div>
   </div>
 
   <div>
@@ -68,6 +113,10 @@
   <p>View the source on <a href="https://github.com/gtback/backgammon-js">GitHub</a>.</p>
 
   <script>
+    // Color overrides applied on top of the board's DEFAULT_OPTIONS. Starts as
+    // the selected theme and is updated by the color pickers.
+    let currentOpts = {};
+
     function loadExample(xgid) {
       document.getElementById('game_id').value = xgid;
       drawBoard();
@@ -85,11 +134,61 @@
       }
       //console.log(gameId)
 
-      const diagram = new Diagram(document.querySelector('#diagram1'), gameId);
+      const diagram = new Diagram(document.querySelector('#diagram1'), gameId, currentOpts);
       diagram.draw();
     }
 
-    drawBoard();
+    // Resolve the effective value of a (possibly dotted) option key from the
+    // current overrides, falling back to the board's defaults.
+    function effectiveColor(key) {
+      const parts = key.split('.');
+      const resolve = (obj) => parts.reduce((o, p) => (o == null ? o : o[p]), obj);
+      const override = resolve(currentOpts);
+      return override != null ? override : resolve(DEFAULT_OPTIONS);
+    }
+
+    // Set a (possibly dotted) option key in currentOpts.
+    function setOpt(key, value) {
+      const parts = key.split('.');
+      let obj = currentOpts;
+      for (let i = 0; i < parts.length - 1; i++) {
+        obj[parts[i]] = obj[parts[i]] || {};
+        obj = obj[parts[i]];
+      }
+      obj[parts[parts.length - 1]] = value;
+    }
+
+    function syncPickers() {
+      document.querySelectorAll('#color_pickers input[type=color]').forEach((input) => {
+        input.value = effectiveColor(input.dataset.key);
+      });
+    }
+
+    function applyTheme(name) {
+      // Deep-copy so picker edits don't mutate the shared THEMES preset.
+      currentOpts = JSON.parse(JSON.stringify(THEMES[name] || {}));
+      syncPickers();
+      drawBoard();
+    }
+
+    // Populate the theme dropdown from the library's presets.
+    const themeSelect = document.getElementById('theme_select');
+    Object.keys(THEMES).forEach((name) => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      themeSelect.appendChild(option);
+    });
+    themeSelect.addEventListener('change', () => applyTheme(themeSelect.value));
+
+    document.querySelectorAll('#color_pickers input[type=color]').forEach((input) => {
+      input.addEventListener('input', () => {
+        setOpt(input.dataset.key, input.value);
+        drawBoard();
+      });
+    });
+
+    applyTheme('Walnut');
   </script>
 </body>
 

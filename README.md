@@ -35,32 +35,69 @@ const diagram = new Diagram(canvas, 'XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:
 diagram.draw();
 ```
 
-See `index.html` for a live demo with an interactive position input. The demo also supports
-loading a position via URL fragment: `index.html#XGID=...`.
+See `index.html` for a live demo with an interactive position input, theme presets, and
+color pickers. The demo also supports loading a position via URL fragment: `index.html#XGID=...`.
 
-## Defaults
+## Theming and Custom Colors
 
-The `Diagram` class does not currently accept custom options. The built-in defaults (defined as
-`DEFAULT_OPTIONS` in `board.js`) are:
+Pass a partial options object as the third argument to `Diagram` to override any default colors:
+
+```js
+const diagram = new Diagram(canvas, xgid, {
+  frameColor: '#1a3a5c',
+  boardBackground: '#1f5f7a',
+  oddPoints: '#0e7490',
+  evenPoints: '#e0d7c0',
+  player1: { checkerColor: '#f5f0e6' },
+  player2: { checkerColor: '#10243a' }
+});
+diagram.draw();
+```
+
+You only need to specify the keys you want to change — the rest inherit from `DEFAULT_OPTIONS`.
+
+### Built-in themes
+
+`board.js` exports a `THEMES` object with named presets (`Walnut`, `Midnight`, `Ocean`, `Slate`)
+that can be passed directly as the options argument:
+
+```js
+const diagram = new Diagram(canvas, xgid, THEMES.Midnight);
+diagram.draw();
+```
+
+### Derived colors
+
+The renderer derives coordinated shades from each base color automatically, so a theme only needs
+to specify a few base colors:
+
+- **Frame gradient** — the frame and bar lighten and darken around `frameColor`, giving a
+  wood-grain look without separate light/dark options.
+- **Point tips** — each triangle fades to a darker shade of its own `oddPoints`/`evenPoints`
+  color toward the tip.
+- **Checker sheen** — the radial gradient on each checker is derived from `checkerColor`, so
+  the highlight and shadow move with the base color.
+
+### Options reference
 
 | Option | Default | Description |
 |---|---|---|
 | `canvasWidth` | `690` | Canvas width in pixels |
 | `canvasHeight` | `560` | Canvas height in pixels |
 | `canvasMargin` | `40` | Margin between canvas edge and board frame |
-| `frameThicknessX` | `50` | Horizontal frame (home board / bar) thickness |
-| `frameThicknessY` | `25` | Vertical frame (top / bottom border) thickness |
-| `barThickness` | `40` | Width of the bar in the center of the board |
-| `frameColor` | dark brown | Color of the outer board frame |
-| `boardBackground` | green | Board background color |
-| `oddPoints` | red | Color of odd-numbered triangular points |
-| `evenPoints` | white | Color of even-numbered triangular points |
-| `player1.checkerColor` | white | Player's checker fill color |
-| `player1.checkerBorder` | black | Player's checker border color |
-| `player1.textColor` | black | Text color on Player's checkers |
-| `player2.checkerColor` | black | Opponent's checker fill color |
-| `player2.checkerBorder` | gray | Opponent's checker border color |
-| `player2.textColor` | white | Text color on Opponent's checkers |
+| `frameThicknessX` | `50` | Horizontal frame thickness |
+| `frameThicknessY` | `25` | Vertical frame thickness |
+| `barThickness` | `40` | Width of the center bar |
+| `frameColor` | `#5a3723` (walnut) | Base color for the frame and bar; gradient shades derived |
+| `boardBackground` | `#226434` (green) | Board background (felt) color |
+| `oddPoints` | `#b42828` (burgundy) | Base color for odd-numbered points; tip shade derived |
+| `evenPoints` | `#ebd7af` (ivory) | Base color for even-numbered points; tip shade derived |
+| `player1.checkerColor` | `#ffffff` | Player's checker fill; highlight/shadow derived |
+| `player1.checkerBorder` | `#000000` | Player's checker border |
+| `player1.textColor` | `#000000` | Text on Player's checkers |
+| `player2.checkerColor` | `#000000` | Opponent's checker fill; highlight/shadow derived |
+| `player2.checkerBorder` | `#3c3c3c` | Opponent's checker border |
+| `player2.textColor` | `#ffffff` | Text on Opponent's checkers |
 
 ## Notes
 

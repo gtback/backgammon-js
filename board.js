@@ -1,15 +1,26 @@
 // SPDX-FileCopyrightText: Greg Back <git@gregback.net>
 // SPDX-License-Identifier: MIT
 
-const BLACK = 'rgb(0, 0, 0)'
-const GRAY = 'rgb(60, 60, 60)'
-const WHITE = 'rgb(255, 255, 255)'
-const WALNUT = 'rgb(90, 55, 35)'
-const WALNUT_LIGHT = 'rgb(105, 68, 48)'
-const WALNUT_DARK = 'rgb(70, 42, 26)'
-const BURGUNDY = 'rgb(180, 40, 40)'
-const IVORY = 'rgb(235, 215, 175)'
-const FELT_GREEN = 'rgb(34, 100, 52)'
+// Structural colors. These are intentionally not configurable: BLACK is used
+// for borders and labels that should stay black regardless of theme.
+const BLACK = '#000000'
+const GRAY = '#3c3c3c'
+const WHITE = '#ffffff'
+
+// Base theme colors. Coordinated shades (frame gradient, point tips, checker
+// sheen) are derived from these at draw time via lighten()/darken(), so a theme
+// only needs to specify base colors.
+const WALNUT = '#5a3723'
+const BURGUNDY = '#b42828'
+const IVORY = '#ebd7af'
+const FELT_GREEN = '#226434'
+
+// Amounts used to derive coordinated shades from a base color.
+const FRAME_LIGHTEN = 0.09
+const FRAME_DARKEN = 0.22
+const POINT_TIP_DARKEN = 0.32
+const CHECKER_HIGHLIGHT = 0.22
+const CHECKER_SHADOW = 0.20
 
 const DEFAULT_OPTIONS = {
   canvasWidth: 690,
@@ -25,17 +36,81 @@ const DEFAULT_OPTIONS = {
   player1: {
     checkerColor: WHITE,
     checkerBorder: BLACK,
-    textColor: BLACK,
-    checkerHighlight: '#ffffff',
-    checkerShadow: '#d0d0d0'
+    textColor: BLACK
   },
   player2: {
     checkerColor: BLACK,
     checkerBorder: GRAY,
-    textColor: WHITE,
-    checkerHighlight: '#3d3d3d',
-    checkerShadow: '#1a1a1a'
+    textColor: WHITE
   }
+}
+
+// Named preset themes. Each is a partial options object (base colors only) that
+// merges over DEFAULT_OPTIONS. The 'Walnut' theme is the default look.
+const THEMES = {
+  Walnut: {},
+  Midnight: {
+    frameColor: '#3a3f55',
+    boardBackground: '#23263a',
+    oddPoints: '#7a6cae',
+    evenPoints: '#cfcae0',
+    player1: { checkerColor: '#ececf2', checkerBorder: '#000000', textColor: '#000000' },
+    player2: { checkerColor: '#3a3d4d', checkerBorder: '#8a8da0', textColor: '#ececf2' }
+  },
+  Ocean: {
+    frameColor: '#c89b6a',
+    boardBackground: '#1f5f7a',
+    oddPoints: '#0e7490',
+    evenPoints: '#e0d7c0',
+    player1: { checkerColor: '#f5f0e6', checkerBorder: '#000000', textColor: '#000000' },
+    player2: { checkerColor: '#10243a', checkerBorder: '#3b5a78', textColor: '#f5f0e6' }
+  },
+  Slate: {
+    frameColor: '#4a4a4a',
+    boardBackground: '#6b6b6b',
+    oddPoints: '#2f2f2f',
+    evenPoints: '#cfcfcf',
+    player1: { checkerColor: '#f0f0f0', checkerBorder: '#000000', textColor: '#000000' },
+    player2: { checkerColor: '#222222', checkerBorder: '#666666', textColor: '#ffffff' }
+  }
+}
+
+// Merge a partial override (e.g. a theme or caller options) over a base options
+// object, one level deep for the player1/player2 sub-objects.
+function mergeOptions (base, override) {
+  override = override || {}
+  return {
+    ...base,
+    ...override,
+    player1: { ...base.player1, ...(override.player1 || {}) },
+    player2: { ...base.player2, ...(override.player2 || {}) }
+  }
+}
+
+function clampChannel (value) {
+  return Math.max(0, Math.min(255, Math.round(value)))
+}
+
+function hexToRgb (hex) {
+  const n = parseInt(hex.slice(1), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function rgbToHex (r, g, b) {
+  const toHex = (v) => clampChannel(v).toString(16).padStart(2, '0')
+  return '#' + toHex(r) + toHex(g) + toHex(b)
+}
+
+// Blend a color toward white by `amount` (0..1).
+function lighten (hex, amount) {
+  const [r, g, b] = hexToRgb(hex)
+  return rgbToHex(r + (255 - r) * amount, g + (255 - g) * amount, b + (255 - b) * amount)
+}
+
+// Blend a color toward black by `amount` (0..1).
+function darken (hex, amount) {
+  const [r, g, b] = hexToRgb(hex)
+  return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount))
 }
 
 const STARTING_POSITION = 'XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10'
@@ -71,20 +146,18 @@ class Point {
     ctx.save()
     const pointGap = 1
 
-    // We start counting at 0, so the "oddPoints" are at index 0, 2, 4, ... but
-    // are points 1, 3, 5, ...
-    ctx.fillStyle = this.index % 2 === 0 ? this.opts.oddPoints : this.opts.evenPoints
-    // The stroke style is the opposite of the fill style
-    // ctx.strokeStyle = this.index % 2 === 0 ? this.opts.evenPoints : this.opts.oddPoints;
     ctx.strokeStyle = BLACK
     ctx.textAlign = 'center'
 
     const pointHeight = this.board.height * 0.45
     const tip = this.baseLine + this.yDirection * pointHeight
 
+    // We start counting at 0, so the "oddPoints" are at index 0, 2, 4, ... but
+    // are points 1, 3, 5, ... The darker tip shade is derived from the base
+    // point color so the two move together.
     const isOdd = this.index % 2 === 0
-    const baseColor = isOdd ? BURGUNDY : IVORY
-    const tipColor = isOdd ? 'rgb(110, 20, 20)' : 'rgb(175, 155, 115)'
+    const baseColor = isOdd ? this.opts.oddPoints : this.opts.evenPoints
+    const tipColor = darken(baseColor, POINT_TIP_DARKEN)
     const grad = ctx.createLinearGradient(this.midpoint, this.baseLine, this.midpoint, tip)
     grad.addColorStop(0, baseColor)
     grad.addColorStop(1, tipColor)
@@ -107,7 +180,7 @@ class Point {
 };
 
 class Diagram {
-  constructor (canvas, game) {
+  constructor (canvas, game, opts) {
     this.canvas = canvas
     if (game == null) {
       game = STARTING_POSITION
@@ -115,7 +188,7 @@ class Diagram {
     this.game = xgidToGame(game)
     this.ctx = canvas.getContext('2d')
 
-    this.opts = DEFAULT_OPTIONS
+    this.opts = mergeOptions(DEFAULT_OPTIONS, opts)
 
     const canvasWidth = this.canvas.width = this.opts.canvasWidth
     const canvasHeight = this.canvas.height = this.opts.canvasHeight
@@ -191,16 +264,20 @@ class Diagram {
     this.ctx.restore()
   }
 
-  drawFrame () {
-    this.ctx.save()
+  makeFrameGradient () {
     const grad = this.ctx.createLinearGradient(
       this.frame.x, this.frame.y,
       this.frame.x, this.frame.y + this.frame.height
     )
-    grad.addColorStop(0, WALNUT_LIGHT)
-    grad.addColorStop(0.45, WALNUT)
-    grad.addColorStop(1, WALNUT_DARK)
-    this.ctx.fillStyle = grad
+    grad.addColorStop(0, lighten(this.opts.frameColor, FRAME_LIGHTEN))
+    grad.addColorStop(0.45, this.opts.frameColor)
+    grad.addColorStop(1, darken(this.opts.frameColor, FRAME_DARKEN))
+    return grad
+  }
+
+  drawFrame () {
+    this.ctx.save()
+    this.ctx.fillStyle = this.makeFrameGradient()
     this.ctx.beginPath()
     this.ctx.roundRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height, 8)
     this.ctx.fill()
@@ -221,8 +298,8 @@ class Diagram {
 
     this.points.forEach((point) => point.draw(this.ctx))
 
-    // Draw Bar
-    this.ctx.fillStyle = this.opts.frameColor
+    // Draw Bar — use the same gradient as the outer frame so it blends in.
+    this.ctx.fillStyle = this.makeFrameGradient()
     this.ctx.fillRect(this.board.x + this.board.width / 2, this.board.y, this.opts.barThickness, this.board.height)
 
     // Draw frame around board to clean up point strokes
@@ -254,8 +331,8 @@ class Diagram {
       cx - radius * 0.15, cy - radius * 0.2, radius * 0.05,
       cx, cy, radius
     )
-    grad.addColorStop(0, player.checkerHighlight)
-    grad.addColorStop(1, player.checkerShadow)
+    grad.addColorStop(0, lighten(player.checkerColor, CHECKER_HIGHLIGHT))
+    grad.addColorStop(1, darken(player.checkerColor, CHECKER_SHADOW))
     this.ctx.fillStyle = grad
     this.ctx.strokeStyle = player.checkerBorder
     this.ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
