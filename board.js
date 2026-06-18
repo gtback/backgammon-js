@@ -253,6 +253,10 @@ class Diagram {
 
     this.ctx.fillStyle = player.checkerColor
     this.ctx.strokeStyle = player.checkerBorder
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
+    this.ctx.shadowBlur = 4
+    this.ctx.shadowOffsetX = 1
+    this.ctx.shadowOffsetY = 2
 
     // Use point-1 since we number points 1-24 but the code expects 0-23.
     const point = this.points[pointNum - 1]
@@ -292,6 +296,10 @@ class Diagram {
     const barCenter = this.opts.canvasMargin + this.opts.frameThicknessX + (this.board.width / 2) + this.opts.barThickness / 2
 
     this.ctx.textAlign = 'center'
+    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
+    this.ctx.shadowBlur = 4
+    this.ctx.shadowOffsetX = 1
+    this.ctx.shadowOffsetY = 2
 
     if (this.game.oppBarCheckers > 0) {
       const y = this.board.y + (this.board.height * 2 / 3)
