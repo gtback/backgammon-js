@@ -3,14 +3,13 @@
 
 const BLACK = 'rgb(0, 0, 0)'
 const GRAY = 'rgb(60, 60, 60)'
-// const BROWN = 'rgb(153, 102, 51)'
-const DARKBROWN = 'rgb(111, 70, 50)'
-const RED = 'rgb(255, 0, 0)'
 const WHITE = 'rgb(255, 255, 255)'
-const GREEN = 'rgb(0, 127, 0)'
-
-// const BLUE = 'rgb(0, 127, 255)'
-// const YELLOW = 'rgb(255, 255, 0)'
+const WALNUT = 'rgb(90, 55, 35)'
+const WALNUT_LIGHT = 'rgb(105, 68, 48)'
+const WALNUT_DARK = 'rgb(70, 42, 26)'
+const BURGUNDY = 'rgb(180, 40, 40)'
+const IVORY = 'rgb(235, 215, 175)'
+const FELT_GREEN = 'rgb(34, 100, 52)'
 
 const DEFAULT_OPTIONS = {
   canvasWidth: 690,
@@ -19,10 +18,10 @@ const DEFAULT_OPTIONS = {
   frameThicknessX: 50,
   frameThicknessY: 25,
   barThickness: 40,
-  frameColor: DARKBROWN,
-  boardBackground: GREEN,
-  oddPoints: RED,
-  evenPoints: WHITE,
+  frameColor: WALNUT,
+  boardBackground: FELT_GREEN,
+  oddPoints: BURGUNDY,
+  evenPoints: IVORY,
   player1: {
     checkerColor: WHITE,
     checkerBorder: BLACK,
