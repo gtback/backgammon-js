@@ -78,6 +78,14 @@ class Point {
     const pointHeight = this.board.height * 0.45
     const tip = this.baseLine + this.yDirection * pointHeight
 
+    const isOdd = this.index % 2 === 0
+    const baseColor = isOdd ? BURGUNDY : IVORY
+    const tipColor = isOdd ? 'rgb(110, 20, 20)' : 'rgb(175, 155, 115)'
+    const grad = ctx.createLinearGradient(this.midpoint, this.baseLine, this.midpoint, tip)
+    grad.addColorStop(0, baseColor)
+    grad.addColorStop(1, tipColor)
+    ctx.fillStyle = grad
+
     ctx.beginPath()
     ctx.moveTo(this.xInit + this.xDirection * pointGap / 2, this.baseLine)
     ctx.lineTo(this.midpoint, tip)
