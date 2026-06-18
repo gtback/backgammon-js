@@ -171,15 +171,19 @@ class Diagram {
   drawCanvas () {
     this.ctx.lineWidth = 5
     this.ctx.strokeStyle = BLACK // always a black border around the canvas
-    this.ctx.strokeRect(0, 0, this.canvas.width, this.canvas.height)
+    this.ctx.beginPath()
+    this.ctx.roundRect(0, 0, this.canvas.width, this.canvas.height, 8)
+    this.ctx.stroke()
   }
 
   drawFrame () {
     this.ctx.fillStyle = this.opts.frameColor
-    this.ctx.fillRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height)
+    this.ctx.beginPath()
+    this.ctx.roundRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height, 8)
+    this.ctx.fill()
     this.ctx.lineWidth = 1
     this.ctx.strokeStyle = BLACK
-    this.ctx.strokeRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height)
+    this.ctx.stroke()
   }
 
   drawBoard () {
@@ -317,8 +321,10 @@ class Diagram {
     this.ctx.strokeStyle = BLACK
     this.ctx.textAlign = 'center'
 
-    this.ctx.fillRect(x, y, cubeSize, cubeSize)
-    this.ctx.strokeRect(x, y, cubeSize, cubeSize)
+    this.ctx.beginPath()
+    this.ctx.roundRect(x, y, cubeSize, cubeSize, 6)
+    this.ctx.fill()
+    this.ctx.stroke()
 
     this.ctx.fillStyle = BLACK
 
@@ -390,8 +396,10 @@ class Diagram {
     this.ctx.fillStyle = this.opts.player2.checkerColor
 
     for (let i = 0; i < this.game.opponentOffCheckers; i++) {
-      this.ctx.fillRect(x, y, offCheckerX, offCheckerY)
-      this.ctx.strokeRect(x, y, offCheckerX, offCheckerY)
+      this.ctx.beginPath()
+      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, 3)
+      this.ctx.fill()
+      this.ctx.stroke()
       y = y + 10
       // Add extra space between every 5 checkers
       if (i % 5 === 4) {
@@ -404,8 +412,10 @@ class Diagram {
     this.ctx.fillStyle = this.opts.player1.checkerColor
 
     for (let i = 0; i < this.game.playerOffCheckers; i++) {
-      this.ctx.fillRect(x, y, offCheckerX, offCheckerY)
-      this.ctx.strokeRect(x, y, offCheckerX, offCheckerY)
+      this.ctx.beginPath()
+      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, 3)
+      this.ctx.fill()
+      this.ctx.stroke()
       y = y - 10
       // Add extra space between every 5 checkers
       if (i % 5 === 4) {
