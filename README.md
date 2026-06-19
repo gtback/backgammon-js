@@ -75,8 +75,9 @@ to specify a few base colors:
   wood-grain look without separate light/dark options.
 - **Point tips** — each triangle fades to a darker shade of its own `oddPoints`/`evenPoints`
   color toward the tip.
-- **Checker sheen** — the radial gradient on each checker is derived from `checkerColor`, so
-  the highlight and shadow move with the base color.
+- **Checker border and sheen** — the border, radial highlight, and shadow are all derived from
+  `checkerColor`. Light checkers get a black border for contrast; dark checkers get a slightly
+  lighter shade so the border doesn't disappear against the fill.
 
 ### Options reference
 
@@ -92,11 +93,9 @@ to specify a few base colors:
 | `boardBackground` | `#226434` (green) | Board background (felt) color |
 | `oddPoints` | `#b42828` (burgundy) | Base color for odd-numbered points; tip shade derived |
 | `evenPoints` | `#ebd7af` (ivory) | Base color for even-numbered points; tip shade derived |
-| `player1.checkerColor` | `#ffffff` | Player's checker fill; highlight/shadow derived |
-| `player1.checkerBorder` | `#000000` | Player's checker border |
+| `player1.checkerColor` | `#ffffff` | Player's checker fill; border, highlight, and shadow derived |
 | `player1.textColor` | `#000000` | Text on Player's checkers |
-| `player2.checkerColor` | `#000000` | Opponent's checker fill; highlight/shadow derived |
-| `player2.checkerBorder` | `#3c3c3c` | Opponent's checker border |
+| `player2.checkerColor` | `#000000` | Opponent's checker fill; border, highlight, and shadow derived |
 | `player2.textColor` | `#ffffff` | Text on Opponent's checkers |
 
 ## Notes

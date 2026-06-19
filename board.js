@@ -4,7 +4,6 @@
 // Structural colors. These are intentionally not configurable: BLACK is used
 // for borders and labels that should stay black regardless of theme.
 const BLACK = '#000000'
-const GRAY = '#3c3c3c'
 const WHITE = '#ffffff'
 
 // Base theme colors. Coordinated shades (frame gradient, point tips, checker
@@ -21,6 +20,7 @@ const FRAME_DARKEN = 0.22
 const POINT_TIP_DARKEN = 0.32
 const CHECKER_HIGHLIGHT = 0.22
 const CHECKER_SHADOW = 0.20
+const CHECKER_BORDER_LIGHTEN = 0.24 // for dark checkers; light checkers always get BLACK
 
 const DEFAULT_OPTIONS = {
   canvasWidth: 690,
@@ -35,12 +35,10 @@ const DEFAULT_OPTIONS = {
   evenPoints: IVORY,
   player1: {
     checkerColor: WHITE,
-    checkerBorder: BLACK,
     textColor: BLACK
   },
   player2: {
     checkerColor: BLACK,
-    checkerBorder: GRAY,
     textColor: WHITE
   }
 }
@@ -54,24 +52,24 @@ const THEMES = {
     boardBackground: '#23263a',
     oddPoints: '#7a6cae',
     evenPoints: '#cfcae0',
-    player1: { checkerColor: '#ececf2', checkerBorder: '#000000', textColor: '#000000' },
-    player2: { checkerColor: '#3a3d4d', checkerBorder: '#8a8da0', textColor: '#ececf2' }
+    player1: { checkerColor: '#ececf2', textColor: '#000000' },
+    player2: { checkerColor: '#3a3d4d', textColor: '#ececf2' }
   },
   Ocean: {
     frameColor: '#c89b6a',
     boardBackground: '#1f5f7a',
     oddPoints: '#0e7490',
     evenPoints: '#e0d7c0',
-    player1: { checkerColor: '#f5f0e6', checkerBorder: '#000000', textColor: '#000000' },
-    player2: { checkerColor: '#10243a', checkerBorder: '#3b5a78', textColor: '#f5f0e6' }
+    player1: { checkerColor: '#f5f0e6', textColor: '#000000' },
+    player2: { checkerColor: '#10243a', textColor: '#f5f0e6' }
   },
   Slate: {
     frameColor: '#4a4a4a',
     boardBackground: '#6b6b6b',
     oddPoints: '#2f2f2f',
     evenPoints: '#cfcfcf',
-    player1: { checkerColor: '#f0f0f0', checkerBorder: '#000000', textColor: '#000000' },
-    player2: { checkerColor: '#222222', checkerBorder: '#666666', textColor: '#ffffff' }
+    player1: { checkerColor: '#f0f0f0', textColor: '#000000' },
+    player2: { checkerColor: '#222222', textColor: '#ffffff' }
   }
 }
 
@@ -111,6 +109,18 @@ function lighten (hex, amount) {
 function darken (hex, amount) {
   const [r, g, b] = hexToRgb(hex)
   return rgbToHex(r * (1 - amount), g * (1 - amount), b * (1 - amount))
+}
+
+// Perceived brightness on a 0..1 scale.
+function luminance (hex) {
+  const [r, g, b] = hexToRgb(hex)
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255
+}
+
+// Light checkers get a black border for contrast; dark checkers get a
+// slightly lighter shade so the border isn't invisible against the dark fill.
+function deriveCheckerBorder (checkerColor) {
+  return luminance(checkerColor) > 0.5 ? BLACK : lighten(checkerColor, CHECKER_BORDER_LIGHTEN)
 }
 
 const STARTING_POSITION = 'XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10'
@@ -334,7 +344,7 @@ class Diagram {
     grad.addColorStop(0, lighten(player.checkerColor, CHECKER_HIGHLIGHT))
     grad.addColorStop(1, darken(player.checkerColor, CHECKER_SHADOW))
     this.ctx.fillStyle = grad
-    this.ctx.strokeStyle = player.checkerBorder
+    this.ctx.strokeStyle = deriveCheckerBorder(player.checkerColor)
     this.ctx.shadowColor = 'rgba(0, 0, 0, 0.45)'
     this.ctx.shadowBlur = 4
     this.ctx.shadowOffsetX = 1
