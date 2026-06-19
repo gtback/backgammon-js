@@ -5,6 +5,16 @@ SPDX-License-Identifier: CC-BY-SA-4.0
 
 # Contributing
 
+## Design principles
+
+Keep these in mind when changing the library (see [AGENTS.md](AGENTS.md) for the full rationale):
+
+- **`board.js` stays a drop-in `<script>` file.** It must work on a plain HTML page with no npm,
+  bundler, or framework. Any dev tooling here is optional and dev-only — if you add module exports
+  for tests, guard them so the browser-global path keeps working.
+- **Drawing one board stays a one-liner**: `new Diagram(canvas, 'XGID=…').draw()`. New options or
+  styling APIs should be additive, never required for the simple case.
+
 ## Running the demo
 
 No build step is required. Open `index.html` directly in a browser:

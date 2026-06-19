@@ -9,6 +9,19 @@ A dependency-free JavaScript library for rendering backgammon board diagrams on 
 It accepts positions in [XGID format](docs/xgid.md) and draws the board, checkers, doubling cube,
 and player scores.
 
+## Purpose
+
+`backgammon-js` is designed around three goals:
+
+1. **Drop-in, no build step.** It's a single file you add to any HTML page with a plain
+   `<script>` tag — no npm, bundler, or framework required. It can also be used inside a
+   tooled project if you have one, but it never depends on having one.
+2. **Trivial to draw one board.** Rendering a position takes no configuration: pass an XGID
+   string and call `.draw()`. Sensible defaults handle everything else.
+3. **Ready to scale up.** The same primitives are meant to drive larger projects that render
+   many diagrams on a page in a consistent style — so the API is built to set styling once and
+   reuse it across many boards.
+
 ## Quick Start
 
 Include `board.js` in your page, then create a `Diagram` and call `.draw()`:
