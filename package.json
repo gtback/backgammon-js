@@ -1,0 +1,16 @@
+{
+  "name": "backgammon-js",
+  "version": "0.0.0",
+  "description": "Dependency-free canvas backgammon board renderer (dev tooling only; board.js is a drop-in <script>).",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test"
+  },
+  "standard": {
+    "env": [
+      "browser",
+      "node"
+    ]
+  }
+}

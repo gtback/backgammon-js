@@ -684,3 +684,24 @@ function xgidToGame (xgid) {
     maxCube
   }
 }
+
+// Dev-only: expose pure helpers for node:test. Guarded so the browser-global
+// path (bare <script> usage) is unaffected.
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    Diagram,
+    mergeOptions,
+    clampChannel,
+    hexToRgb,
+    rgbToHex,
+    lighten,
+    darken,
+    luminance,
+    deriveCheckerBorder,
+    charToCount,
+    xgidToGame,
+    DEFAULT_OPTIONS,
+    THEMES,
+    STARTING_POSITION
+  }
+}
