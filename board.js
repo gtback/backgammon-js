@@ -22,13 +22,30 @@ const CHECKER_HIGHLIGHT = 0.22
 const CHECKER_SHADOW = 0.20
 const CHECKER_BORDER_LIGHTEN = 0.24 // for dark checkers; light checkers always get BLACK
 
+// Layout ratios, expressed in the fundamental unit U = one point (column) width.
+// "The board is 12 points wide" is the most fundamental ratio, so every
+// dimension is a fixed multiple of U and the aspect ratio is constant. One scale
+// factor (U, in pixels) reaches the screen; see resolveUnit().
+const BOARD_W = 12 // playing area is 12 points wide (6 per half), excludes bar
+const BOARD_H = 11 // a 5-high checker stack is 4.5 U, leaving ~2 U down the middle
+const BAR = 1 // the bar is about one column wide
+const CHECKER_DIAM = 0.9 // checker diameter as a fraction of a column -> r = 0.45 U
+const POINT_H = 4.5 // point triangle height; just taller than a 5-high stack
+const CUBE = 0.9
+const DIE = 0.9
+const OFF_H = 0.2 // off-board checker tray bar height (edge view of a checker)
+const OFF_STEP = 0.25 // vertical stride between stacked off-board checkers
+
+// Default scale when the caller passes no scale knob: one point is 40px wide.
+const DEFAULT_POINT_WIDTH = 40
+
 const DEFAULT_OPTIONS = {
-  canvasWidth: 690,
-  canvasHeight: 560,
-  canvasMargin: 40,
-  frameThicknessX: 50,
-  frameThicknessY: 25,
-  barThickness: 40,
+  // Chrome (the frame + outer margin) holds scores and, later, player names.
+  // These are unit-amounts of U, so the chrome can grow without disturbing the
+  // core board ratios above.
+  margin: 1,
+  frameX: 1.1,
+  frameY: 0.65,
   frameColor: WALNUT,
   boardBackground: FELT_GREEN,
   oddPoints: BURGUNDY,
@@ -41,6 +58,29 @@ const DEFAULT_OPTIONS = {
     checkerColor: BLACK,
     textColor: WHITE
   }
+}
+
+// Total canvas size in U, including chrome. Depends on the chrome amounts, so it
+// is computed from merged opts rather than baked into a constant.
+function totalWidth (opts) {
+  return 2 * opts.margin + 2 * opts.frameX + BOARD_W + BAR
+}
+
+function totalHeight (opts) {
+  return 2 * opts.margin + 2 * opts.frameY + BOARD_H
+}
+
+// Resolve the pixel size of one unit U from whichever scale knob the caller
+// passed, in precedence order. Scale knobs are optional and not part of
+// DEFAULT_OPTIONS; when none is given we fall back to DEFAULT_POINT_WIDTH so the
+// zero-config one-liner still has a size. `opts` must already be merged over
+// DEFAULT_OPTIONS, since canvasWidth back-solving needs the chrome amounts.
+function resolveUnit (opts) {
+  if (opts.checkerRadius != null) return opts.checkerRadius / (CHECKER_DIAM / 2)
+  if (opts.pointWidth != null) return opts.pointWidth
+  if (opts.boardWidth != null) return opts.boardWidth / BOARD_W
+  if (opts.canvasWidth != null) return opts.canvasWidth / totalWidth(opts)
+  return DEFAULT_POINT_WIDTH
 }
 
 // Named preset themes. Each is a partial options object (base colors only) that
@@ -145,7 +185,7 @@ class Point {
       this.textPoint = this.board.y + this.board.height + 18
     }
     if (this.index < 6 || this.index > 17) { // Points on the right side of the bar.
-      this.startX += this.opts.barThickness
+      this.startX += this.board.bar
     }
 
     this.xInit = this.startX + this.xDirection * (this.index % 12) * this.board.width / 12
@@ -159,7 +199,7 @@ class Point {
     ctx.strokeStyle = BLACK
     ctx.textAlign = 'center'
 
-    const pointHeight = this.board.height * 0.45
+    const pointHeight = POINT_H * this.board.unit
     const tip = this.baseLine + this.yDirection * pointHeight
 
     // We start counting at 0, so the "oddPoints" are at index 0, 2, 4, ... but
@@ -182,8 +222,9 @@ class Point {
     ctx.lineTo(this.xInit + this.xDirection * pointGap / 2, this.baseLine)
     ctx.fill()
 
-    // Label point number (always black, not configurable)
-    ctx.fillStyle = BLACK
+    // Label point number. The label sits on the frame, so pick black or white
+    // for contrast against the frame color (a dark walnut frame needs white).
+    ctx.fillStyle = luminance(this.opts.frameColor) > 0.5 ? BLACK : WHITE
     ctx.fillText(this.index + 1, this.midpoint, this.textPoint)
     ctx.restore()
   }
@@ -200,43 +241,39 @@ class Diagram {
 
     this.opts = mergeOptions(DEFAULT_OPTIONS, opts)
 
-    const canvasWidth = this.canvas.width = this.opts.canvasWidth
-    const canvasHeight = this.canvas.height = this.opts.canvasHeight
+    // Everything is a fixed multiple of one unit U (a column width). Resolve U
+    // to pixels from the caller's scale knob, then derive the rest.
+    const unit = this.unit = resolveUnit(this.opts)
+    this.radius = (CHECKER_DIAM / 2) * unit
 
-    const canvasMargin = this.opts.canvasMargin
+    const margin = this.margin = this.opts.margin * unit
+    const frameThicknessX = this.frameX = this.opts.frameX * unit
+    const frameThicknessY = this.frameY = this.opts.frameY * unit
+    const bar = BAR * unit
 
-    const frameX = canvasMargin
-    const frameY = canvasMargin
-
-    const frameWidth = canvasWidth - 2 * canvasMargin
-    const frameHeight = canvasHeight - 2 * canvasMargin
+    const canvasWidth = this.canvasWidth = this.canvas.width = totalWidth(this.opts) * unit
+    const canvasHeight = this.canvasHeight = this.canvas.height = totalHeight(this.opts) * unit
 
     this.frame = {
-      x: frameX,
-      y: frameY,
-      width: frameWidth,
-      height: frameHeight
+      x: margin,
+      y: margin,
+      width: canvasWidth - 2 * margin,
+      height: canvasHeight - 2 * margin
     }
 
-    const boardX = frameX + this.opts.frameThicknessX
-    const boardY = frameY + this.opts.frameThicknessY
-
-    const boardWidth = frameWidth - 2 * this.opts.frameThicknessX - this.opts.barThickness
-    const boardHeight = frameHeight - 2 * this.opts.frameThicknessY
-
     this.board = {
-      x: boardX,
-      y: boardY,
-      width: boardWidth,
-      height: boardHeight
+      x: margin + frameThicknessX,
+      y: margin + frameThicknessY,
+      width: BOARD_W * unit,
+      height: BOARD_H * unit,
+      bar,
+      unit
     }
 
     this.points = []
     for (let point = 0; point < 24; point++) {
       this.points.push(new Point(point, this.board, this.opts))
     }
-
-    this.radius = this.board.width / 25
   }
 
   draw () {
@@ -264,12 +301,18 @@ class Diagram {
     this.drawDice()
   }
 
+  // Pixels for `k` units. The whole layout is expressed in unit multiples; this
+  // keeps draw-time call sites readable.
+  u (k) {
+    return this.unit * k
+  }
+
   drawCanvas () {
     this.ctx.save()
-    this.ctx.lineWidth = 5
+    this.ctx.lineWidth = this.u(0.125)
     this.ctx.strokeStyle = BLACK // always a black border around the canvas
     this.ctx.beginPath()
-    this.ctx.roundRect(0, 0, this.canvas.width, this.canvas.height, 8)
+    this.ctx.roundRect(0, 0, this.canvas.width, this.canvas.height, this.u(0.2))
     this.ctx.stroke()
     this.ctx.restore()
   }
@@ -289,9 +332,9 @@ class Diagram {
     this.ctx.save()
     this.ctx.fillStyle = this.makeFrameGradient()
     this.ctx.beginPath()
-    this.ctx.roundRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height, 8)
+    this.ctx.roundRect(this.frame.x, this.frame.y, this.frame.width, this.frame.height, this.u(0.2))
     this.ctx.fill()
-    this.ctx.lineWidth = 1
+    this.ctx.lineWidth = this.u(0.025)
     this.ctx.strokeStyle = BLACK
     this.ctx.stroke()
     this.ctx.restore()
@@ -300,38 +343,38 @@ class Diagram {
   drawBoard () {
     this.ctx.save()
     this.ctx.fillStyle = this.opts.boardBackground
-    this.ctx.fillRect(this.board.x, this.board.y, this.board.width + this.opts.barThickness, this.board.height)
+    this.ctx.fillRect(this.board.x, this.board.y, this.board.width + this.board.bar, this.board.height)
 
-    this.ctx.lineWidth = 1
+    this.ctx.lineWidth = this.u(0.025)
 
-    this.ctx.font = '18px arial'
+    this.ctx.font = `${this.u(0.45)}px arial`
 
     this.points.forEach((point) => point.draw(this.ctx))
 
     // Draw Bar — use the same gradient as the outer frame so it blends in.
     this.ctx.fillStyle = this.makeFrameGradient()
-    this.ctx.fillRect(this.board.x + this.board.width / 2, this.board.y, this.opts.barThickness, this.board.height)
+    this.ctx.fillRect(this.board.x + this.board.width / 2, this.board.y, this.board.bar, this.board.height)
 
     // Draw frame around board to clean up point strokes
     this.ctx.strokeStyle = BLACK
     this.ctx.strokeRect(this.board.x, this.board.y, this.board.width / 2, this.board.height)
-    this.ctx.strokeRect(this.board.x + (this.board.width / 2) + this.opts.barThickness, this.board.y, this.board.width / 2, this.board.height)
+    this.ctx.strokeRect(this.board.x + (this.board.width / 2) + this.board.bar, this.board.y, this.board.width / 2, this.board.height)
     this.ctx.restore()
   }
 
   drawPlayerScores () {
     this.ctx.save()
-    const x = this.opts.canvasMargin
+    const x = this.margin
     this.ctx.fillStyle = BLACK
-    this.ctx.font = '14px arial'
+    this.ctx.font = `${this.u(0.35)}px arial`
     this.ctx.textAlign = 'left'
 
     // Opponent
-    let y = this.opts.canvasMargin - 8
+    let y = this.margin - this.u(0.2)
     this.ctx.fillText(`Opponent Score: ${this.game.oppScore}/${this.game.duration}`, x, y)
 
     // Player
-    y = this.opts.canvasHeight - this.opts.canvasMargin + 18
+    y = this.canvasHeight - this.margin + this.u(0.45)
     this.ctx.fillText(`Player Score: ${this.game.playerScore}/${this.game.duration}`, x, y)
     this.ctx.restore()
   }
@@ -366,9 +409,9 @@ class Diagram {
     const point = this.points[pointNum - 1]
 
     // Space above the baseline before starting checkers
-    const pointPadding = 1
+    const pointPadding = this.u(0.025)
     // Space between checkers on the same point
-    const pointSpacing = 1
+    const pointSpacing = this.u(0.025)
 
     const maxCheckersPerPoint = 5
 
@@ -382,12 +425,12 @@ class Diagram {
       this.ctx.fillStyle = player.textColor
       const x = point.midpoint
 
-      // TODO: calculate this better
+      // Place the count label over the outermost checker in the stack.
       let offsets = maxCheckersPerPoint
       if (point.yDirection === -1) {
         offsets--
       }
-      const y = point.baseLine + point.yDirection * (((2 * radius + pointSpacing) * offsets)) - (radius - 5)
+      const y = point.baseLine + point.yDirection * (((2 * radius + pointSpacing) * offsets)) - (radius - this.u(0.125))
 
       this.ctx.fillText(numCheckers, x, y)
     }
@@ -396,7 +439,7 @@ class Diagram {
 
   drawCheckersOnBar () {
     this.ctx.save()
-    const barCenter = this.opts.canvasMargin + this.opts.frameThicknessX + (this.board.width / 2) + this.opts.barThickness / 2
+    const barCenter = this.board.x + (this.board.width / 2) + this.board.bar / 2
 
     this.ctx.textAlign = 'center'
 
@@ -406,7 +449,7 @@ class Diagram {
       this.drawSingleChecker(cx, cy, this.radius, this.opts.player2)
       if (this.game.oppBarCheckers > 1) {
         this.ctx.fillStyle = this.opts.player2.textColor
-        this.ctx.fillText(this.game.oppBarCheckers, cx, cy + (this.radius - 12))
+        this.ctx.fillText(this.game.oppBarCheckers, cx, cy + (this.radius - this.u(0.3)))
       }
     }
 
@@ -416,7 +459,7 @@ class Diagram {
       this.drawSingleChecker(cx, cy, this.radius, this.opts.player1)
       if (this.game.playerBarCheckers > 1) {
         this.ctx.fillStyle = this.opts.player1.textColor
-        this.ctx.fillText(this.game.playerBarCheckers, cx, cy + (this.radius - 12))
+        this.ctx.fillText(this.game.playerBarCheckers, cx, cy + (this.radius - this.u(0.3)))
       }
     }
     this.ctx.restore()
@@ -428,10 +471,10 @@ class Diagram {
   // - 1 if the cube is owned by the player
   // - -1 if the cube is owned by the opponent
     this.ctx.save()
-    const cubeSize = 40
-    const margin = (this.opts.frameThicknessX - cubeSize) / 2
+    const cubeSize = CUBE * this.unit
+    const railOffset = (this.frameX - cubeSize) / 2
 
-    const x = this.opts.canvasMargin + margin
+    const x = this.margin + railOffset
 
     let y
 
@@ -440,26 +483,28 @@ class Diagram {
     }
 
     if (owner === 0) {
-      y = (this.opts.canvasHeight - cubeSize) / 2
+      y = (this.canvasHeight - cubeSize) / 2
     } else if (owner === -1) {
-      y = this.opts.canvasMargin + this.opts.frameThicknessY
+      y = this.margin + this.frameY
     } else {
-      y = this.opts.canvasHeight - this.opts.canvasMargin - this.opts.frameThicknessY - cubeSize
+      y = this.canvasHeight - this.margin - this.frameY - cubeSize
     }
 
     this.ctx.fillStyle = WHITE
     this.ctx.strokeStyle = BLACK
+    // A heavier border than the dice (1px) keeps the cube visually distinct.
+    this.ctx.lineWidth = this.u(0.07)
     this.ctx.textAlign = 'center'
 
     this.ctx.beginPath()
-    this.ctx.roundRect(x, y, cubeSize, cubeSize, 6)
+    this.ctx.roundRect(x, y, cubeSize, cubeSize, this.u(0.15))
     this.ctx.fill()
     this.ctx.stroke()
 
     this.ctx.fillStyle = BLACK
-    this.ctx.font = 'bold 18px arial'
+    this.ctx.font = `bold ${this.u(0.45)}px arial`
 
-    this.ctx.fillText(value, (x + cubeSize / 2), y + cubeSize / 2 + 5)
+    this.ctx.fillText(value, (x + cubeSize / 2), y + cubeSize / 2 + this.u(0.125))
     this.ctx.restore()
   }
 
@@ -478,7 +523,7 @@ class Diagram {
     const dieColor = colors.checkerColor
     const pipColor = colors.textColor
 
-    const dieSize = 36
+    const dieSize = DIE * this.unit
 
     if (roll === '00') {
       // Cube decision: the player is on roll but hasn't rolled yet. Show two
@@ -486,10 +531,10 @@ class Diagram {
       // left rail holds the cube), centered vertically so the dice stay clear
       // of the off-board checkers, which stack from the top and bottom ends.
       // The die color still indicates whose decision it is.
-      const gap = 8
-      const railX = this.opts.canvasWidth - this.opts.canvasMargin -
-        this.opts.frameThicknessX + (this.opts.frameThicknessX - dieSize) / 2
-      const topY = (this.opts.canvasHeight - (2 * dieSize + gap)) / 2
+      const gap = this.u(0.2)
+      const railX = this.canvasWidth - this.margin -
+        this.frameX + (this.frameX - dieSize) / 2
+      const topY = (this.canvasHeight - (2 * dieSize + gap)) / 2
 
       drawDie(this.ctx, railX, topY, dieSize, 1, dieColor, pipColor)
       drawDie(this.ctx, railX, topY + dieSize + gap, dieSize, 1, dieColor, pipColor)
@@ -509,10 +554,10 @@ class Diagram {
     // (bottom) rolls in the screen-right half and the opponent (top) in the
     // screen-left half.
     const halfCenterX = isPlayer
-      ? this.board.x + this.board.width / 2 + this.opts.barThickness + this.board.width / 4
+      ? this.board.x + this.board.width / 2 + this.board.bar + this.board.width / 4
       : this.board.x + this.board.width / 4
     const y = this.board.y + this.board.height / 2 - dieSize / 2
-    const gap = 12
+    const gap = this.u(0.3)
 
     drawDie(this.ctx, halfCenterX - dieSize - gap / 2, y, dieSize, d1, dieColor, pipColor)
     drawDie(this.ctx, halfCenterX + gap / 2, y, dieSize, d2, dieColor, pipColor)
@@ -521,46 +566,60 @@ class Diagram {
 
   drawCheckersOffBoard () {
     this.ctx.save()
-    const offCheckerX = 40 // todo: should be radius / 2
-    const offCheckerY = 8
+    const offCheckerX = CHECKER_DIAM * this.unit
+    const offCheckerY = OFF_H * this.unit
+    const step = OFF_STEP * this.unit
+    const groupGap = this.u(0.125) // extra space between every 5 checkers
+    const cornerRadius = this.u(0.075)
 
     this.ctx.strokeStyle = BLACK
 
-    const x = this.opts.canvasWidth - this.opts.canvasMargin - (this.opts.frameThicknessX + offCheckerX) / 2
+    const x = this.canvasWidth - this.margin - (this.frameX + offCheckerX) / 2
 
     // Opponent
-    let y = this.opts.canvasMargin + this.opts.frameThicknessY
+    let y = this.margin + this.frameY
 
     this.ctx.fillStyle = this.opts.player2.checkerColor
 
     for (let i = 0; i < this.game.opponentOffCheckers; i++) {
       this.ctx.beginPath()
-      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, 3)
+      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, cornerRadius)
       this.ctx.fill()
       this.ctx.stroke()
-      y = y + 10
-      // Add extra space between every 5 checkers
+      y = y + step
       if (i % 5 === 4) {
-        y = y + 5
+        y = y + groupGap
       }
     }
 
     // Player
-    y = this.opts.canvasHeight - this.opts.canvasMargin - this.opts.frameThicknessY - offCheckerY
+    y = this.canvasHeight - this.margin - this.frameY - offCheckerY
     this.ctx.fillStyle = this.opts.player1.checkerColor
 
     for (let i = 0; i < this.game.playerOffCheckers; i++) {
       this.ctx.beginPath()
-      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, 3)
+      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, cornerRadius)
       this.ctx.fill()
       this.ctx.stroke()
-      y = y - 10
-      // Add extra space between every 5 checkers
+      y = y - step
       if (i % 5 === 4) {
-        y = y - 5
+        y = y - groupGap
       }
     }
     this.ctx.restore()
+  }
+}
+
+// A reusable style: merge options (a theme and/or scale knobs) once, then draw
+// many diagrams that share it. Drawing a single board needs no BoardStyle — that
+// path stays the one-liner `new Diagram(canvas, 'XGID=…').draw()`.
+class BoardStyle {
+  constructor (opts) {
+    this.opts = mergeOptions(DEFAULT_OPTIONS, opts)
+  }
+
+  draw (canvas, game) {
+    return new Diagram(canvas, game, this.opts).draw()
   }
 }
 
@@ -690,7 +749,11 @@ function xgidToGame (xgid) {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     Diagram,
+    BoardStyle,
     mergeOptions,
+    resolveUnit,
+    totalWidth,
+    totalHeight,
     clampChannel,
     hexToRgb,
     rgbToHex,
@@ -701,6 +764,11 @@ if (typeof module !== 'undefined' && module.exports) {
     charToCount,
     xgidToGame,
     DEFAULT_OPTIONS,
+    DEFAULT_POINT_WIDTH,
+    BOARD_W,
+    BOARD_H,
+    BAR,
+    CHECKER_DIAM,
     THEMES,
     STARTING_POSITION
   }
