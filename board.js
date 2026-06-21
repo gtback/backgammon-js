@@ -247,26 +247,25 @@ class Diagram {
     this.radius = (CHECKER_DIAM / 2) * unit
 
     const margin = this.margin = this.opts.margin // outer padding, in pixels
-    const frameThicknessX = this.frameX = FRAME_X * unit
-    const frameThicknessY = this.frameY = FRAME_Y * unit
-    const bar = BAR * unit
+    this.frameX = FRAME_X * unit
+    this.frameY = FRAME_Y * unit
 
-    const canvasWidth = this.canvasWidth = this.canvas.width = TOTAL_W * unit + 2 * margin
-    const canvasHeight = this.canvasHeight = this.canvas.height = TOTAL_H * unit + 2 * margin
+    this.canvas.width = this.canvasWidth = TOTAL_W * unit + 2 * margin
+    this.canvas.height = this.canvasHeight = TOTAL_H * unit + 2 * margin
 
     this.frame = {
       x: margin,
       y: margin,
-      width: canvasWidth - 2 * margin,
-      height: canvasHeight - 2 * margin
+      width: this.canvasWidth - 2 * margin,
+      height: this.canvasHeight - 2 * margin
     }
 
     this.board = {
-      x: margin + frameThicknessX,
-      y: margin + frameThicknessY,
+      x: margin + this.frameX,
+      y: margin + this.frameY,
       width: BOARD_W * unit,
       height: BOARD_H * unit,
-      bar,
+      bar: BAR * unit,
       unit
     }
 
@@ -408,16 +407,14 @@ class Diagram {
     // Use point-1 since we number points 1-24 but the code expects 0-23.
     const point = this.points[pointNum - 1]
 
-    // Space above the baseline before starting checkers
-    const pointPadding = this.u(0.025)
-    // Space between checkers on the same point
-    const pointSpacing = this.u(0.025)
+    // Gap above the baseline before the first checker, and between checkers.
+    const gap = this.u(0.025)
 
     const maxCheckersPerPoint = 5
 
     for (let i = 0; i < Math.min(numCheckers, maxCheckersPerPoint); i++) {
       const cx = point.midpoint
-      const cy = point.baseLine + point.yDirection * (pointPadding + pointSpacing * i + (2 * radius * i) + radius)
+      const cy = point.baseLine + point.yDirection * (gap + gap * i + (2 * radius * i) + radius)
       this.drawSingleChecker(cx, cy, radius, player)
     }
 
@@ -430,7 +427,7 @@ class Diagram {
       if (point.yDirection === -1) {
         offsets--
       }
-      const y = point.baseLine + point.yDirection * (((2 * radius + pointSpacing) * offsets)) - (radius - this.u(0.125))
+      const y = point.baseLine + point.yDirection * (((2 * radius + gap) * offsets)) - (radius - this.u(0.125))
 
       this.ctx.fillText(numCheckers, x, y)
     }
