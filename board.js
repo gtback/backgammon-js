@@ -681,7 +681,7 @@ function xgidToGame (xgid) {
   const regex = /(XGID=)?([-A-Oa-o]{26}):(\d+):(-?[01]):(-?1):([0-6][0-6]):(\d+):(\d+):([0-3]):(\d+):(\d+)/
   const match = xgid.match(regex)
   if (match === null) {
-    // TODO
+    throw new Error(`invalid XGID: ${xgid}`)
   }
 
   const checkers = match[2]
