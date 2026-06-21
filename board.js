@@ -554,47 +554,37 @@ class Diagram {
 
   drawCheckersOffBoard () {
     this.ctx.save()
-    const offCheckerX = CHECKER_DIAM * this.unit
-    const offCheckerY = OFF_H * this.unit
-    const step = OFF_STEP * this.unit
-    const groupGap = this.u(0.125) // extra space between every 5 checkers
-    const cornerRadius = this.u(0.075)
-
     this.ctx.strokeStyle = BLACK
-
-    const x = this.canvasWidth - this.margin - (this.frameX + offCheckerX) / 2
-
-    // Opponent
-    let y = this.margin + this.frameY
-
-    this.ctx.fillStyle = this.opts.player2.checkerColor
-
-    for (let i = 0; i < this.game.opponentOffCheckers; i++) {
-      this.ctx.beginPath()
-      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, cornerRadius)
-      this.ctx.fill()
-      this.ctx.stroke()
-      y = y + step
-      if (i % 5 === 4) {
-        y = y + groupGap
-      }
-    }
-
-    // Player
-    y = this.canvasHeight - this.margin - this.frameY - offCheckerY
-    this.ctx.fillStyle = this.opts.player1.checkerColor
-
-    for (let i = 0; i < this.game.playerOffCheckers; i++) {
-      this.ctx.beginPath()
-      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, cornerRadius)
-      this.ctx.fill()
-      this.ctx.stroke()
-      y = y - step
-      if (i % 5 === 4) {
-        y = y - groupGap
-      }
-    }
+    // The opponent's tray stacks down from the top frame; the player's stacks up
+    // from the bottom frame.
+    this.drawOffBoardStack(this.game.opponentOffCheckers, this.margin + this.frameY, 1, this.opts.player2.checkerColor)
+    this.drawOffBoardStack(this.game.playerOffCheckers, this.canvasHeight - this.margin - this.frameY - OFF_H * this.unit, -1, this.opts.player1.checkerColor)
     this.ctx.restore()
+  }
+
+  // Draw `count` borne-off checkers as a stack of edge-on bars, starting at
+  // `startY` and stepping by `dir` (1 = down from the top, -1 = up from the
+  // bottom), with a small extra gap after every 5.
+  drawOffBoardStack (count, startY, dir, color) {
+    const width = CHECKER_DIAM * this.unit
+    const height = OFF_H * this.unit
+    const step = OFF_STEP * this.unit
+    const groupGap = this.u(0.125)
+    const cornerRadius = this.u(0.075)
+    const x = this.canvasWidth - this.margin - (this.frameX + width) / 2
+
+    this.ctx.fillStyle = color
+    let y = startY
+    for (let i = 0; i < count; i++) {
+      this.ctx.beginPath()
+      this.ctx.roundRect(x, y, width, height, cornerRadius)
+      this.ctx.fill()
+      this.ctx.stroke()
+      y += dir * step
+      if (i % 5 === 4) {
+        y += dir * groupGap
+      }
+    }
   }
 }
 
