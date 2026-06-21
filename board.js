@@ -439,30 +439,21 @@ class Diagram {
 
   drawCheckersOnBar () {
     this.ctx.save()
-    const barCenter = this.board.x + (this.board.width / 2) + this.board.bar / 2
-
     this.ctx.textAlign = 'center'
-
-    if (this.game.oppBarCheckers > 0) {
-      const cx = barCenter
-      const cy = this.board.y + (this.board.height * 2 / 3)
-      this.drawSingleChecker(cx, cy, this.radius, this.opts.player2)
-      if (this.game.oppBarCheckers > 1) {
-        this.ctx.fillStyle = deriveTextColor(this.opts.player2.checkerColor)
-        this.ctx.fillText(this.game.oppBarCheckers, cx, cy + (this.radius - this.u(0.3)))
-      }
-    }
-
-    if (this.game.playerBarCheckers > 0) {
-      const cx = barCenter
-      const cy = this.board.y + (this.board.height / 3)
-      this.drawSingleChecker(cx, cy, this.radius, this.opts.player1)
-      if (this.game.playerBarCheckers > 1) {
-        this.ctx.fillStyle = deriveTextColor(this.opts.player1.checkerColor)
-        this.ctx.fillText(this.game.playerBarCheckers, cx, cy + (this.radius - this.u(0.3)))
-      }
-    }
+    // The two players' barred checkers sit two-thirds and one-third down the bar.
+    this.drawBarChecker(this.game.oppBarCheckers, this.board.y + this.board.height * 2 / 3, this.opts.player2)
+    this.drawBarChecker(this.game.playerBarCheckers, this.board.y + this.board.height / 3, this.opts.player1)
     this.ctx.restore()
+  }
+
+  drawBarChecker (count, cy, player) {
+    if (count <= 0) return
+    const cx = this.board.x + this.board.width / 2 + this.board.bar / 2
+    this.drawSingleChecker(cx, cy, this.radius, player)
+    if (count > 1) {
+      this.ctx.fillStyle = deriveTextColor(player.checkerColor)
+      this.ctx.fillText(count, cx, cy + (this.radius - this.u(0.3)))
+    }
   }
 
   drawCube (owner, value) {
