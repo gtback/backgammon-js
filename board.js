@@ -29,6 +29,8 @@ const CHECKER_BORDER_LIGHTEN = 0.24 // for dark checkers; light checkers always 
 const BOARD_W = 12 // playing area is 12 points wide (6 per half), excludes bar
 const BOARD_H = 11 // a 5-high checker stack is 4.5 U, leaving ~2 U down the middle
 const BAR = 1 // the bar is about one column wide
+const FRAME_X = 1.1 // side frame thickness; must be >= 1 U to fit cube/dice/tray
+const FRAME_Y = 0.65 // top/bottom frame thickness
 const CHECKER_DIAM = 0.9 // checker diameter as a fraction of a column -> r = 0.45 U
 const POINT_H = 4.5 // point triangle height; just taller than a 5-high stack
 const CUBE = 0.9
@@ -40,46 +42,36 @@ const OFF_STEP = 0.25 // vertical stride between stacked off-board checkers
 const DEFAULT_POINT_WIDTH = 40
 
 const DEFAULT_OPTIONS = {
-  // Chrome (the frame + outer margin) holds scores and, later, player names.
-  // These are unit-amounts of U, so the chrome can grow without disturbing the
-  // core board ratios above.
-  margin: 1,
-  frameX: 1.1,
-  frameY: 0.65,
+  // Outer padding around the framed board, in pixels (a constant gap regardless
+  // of board scale). Everything else a caller tunes is a color.
+  margin: 40,
   frameColor: WALNUT,
   boardBackground: FELT_GREEN,
   oddPoints: BURGUNDY,
   evenPoints: IVORY,
   player1: {
-    checkerColor: WHITE,
-    textColor: BLACK
+    checkerColor: WHITE
   },
   player2: {
-    checkerColor: BLACK,
-    textColor: WHITE
+    checkerColor: BLACK
   }
 }
 
-// Total canvas size in U, including chrome. Depends on the chrome amounts, so it
-// is computed from merged opts rather than baked into a constant.
-function totalWidth (opts) {
-  return 2 * opts.margin + 2 * opts.frameX + BOARD_W + BAR
-}
-
-function totalHeight (opts) {
-  return 2 * opts.margin + 2 * opts.frameY + BOARD_H
-}
+// Framed board size in U (the playing area plus the side/top frames), excluding
+// the outer margin which is added in pixels. The aspect ratio is constant.
+const TOTAL_W = 2 * FRAME_X + BOARD_W + BAR // = 15.2 U
+const TOTAL_H = 2 * FRAME_Y + BOARD_H // = 12.3 U
 
 // Resolve the pixel size of one unit U from whichever scale knob the caller
 // passed, in precedence order. Scale knobs are optional and not part of
 // DEFAULT_OPTIONS; when none is given we fall back to DEFAULT_POINT_WIDTH so the
 // zero-config one-liner still has a size. `opts` must already be merged over
-// DEFAULT_OPTIONS, since canvasWidth back-solving needs the chrome amounts.
+// DEFAULT_OPTIONS, since canvasWidth back-solving subtracts the margin.
 function resolveUnit (opts) {
   if (opts.checkerRadius != null) return opts.checkerRadius / (CHECKER_DIAM / 2)
   if (opts.pointWidth != null) return opts.pointWidth
   if (opts.boardWidth != null) return opts.boardWidth / BOARD_W
-  if (opts.canvasWidth != null) return opts.canvasWidth / totalWidth(opts)
+  if (opts.canvasWidth != null) return (opts.canvasWidth - 2 * opts.margin) / TOTAL_W
   return DEFAULT_POINT_WIDTH
 }
 
@@ -92,24 +84,24 @@ const THEMES = {
     boardBackground: '#23263a',
     oddPoints: '#7a6cae',
     evenPoints: '#cfcae0',
-    player1: { checkerColor: '#ececf2', textColor: '#000000' },
-    player2: { checkerColor: '#3a3d4d', textColor: '#ececf2' }
+    player1: { checkerColor: '#ececf2' },
+    player2: { checkerColor: '#3a3d4d' }
   },
   Ocean: {
     frameColor: '#c89b6a',
     boardBackground: '#1f5f7a',
     oddPoints: '#0e7490',
     evenPoints: '#e0d7c0',
-    player1: { checkerColor: '#f5f0e6', textColor: '#000000' },
-    player2: { checkerColor: '#10243a', textColor: '#f5f0e6' }
+    player1: { checkerColor: '#f5f0e6' },
+    player2: { checkerColor: '#10243a' }
   },
   Slate: {
     frameColor: '#4a4a4a',
     boardBackground: '#6b6b6b',
     oddPoints: '#2f2f2f',
     evenPoints: '#cfcfcf',
-    player1: { checkerColor: '#f0f0f0', textColor: '#000000' },
-    player2: { checkerColor: '#222222', textColor: '#ffffff' }
+    player1: { checkerColor: '#f0f0f0' },
+    player2: { checkerColor: '#222222' }
   }
 }
 
@@ -161,6 +153,12 @@ function luminance (hex) {
 // slightly lighter shade so the border isn't invisible against the dark fill.
 function deriveCheckerBorder (checkerColor) {
   return luminance(checkerColor) > 0.5 ? BLACK : lighten(checkerColor, CHECKER_BORDER_LIGHTEN)
+}
+
+// Text/pips drawn on a checker or die contrast with it: black on a light
+// checker, white on a dark one.
+function deriveTextColor (checkerColor) {
+  return luminance(checkerColor) > 0.5 ? BLACK : WHITE
 }
 
 const STARTING_POSITION = 'XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10'
@@ -246,13 +244,13 @@ class Diagram {
     const unit = this.unit = resolveUnit(this.opts)
     this.radius = (CHECKER_DIAM / 2) * unit
 
-    const margin = this.margin = this.opts.margin * unit
-    const frameThicknessX = this.frameX = this.opts.frameX * unit
-    const frameThicknessY = this.frameY = this.opts.frameY * unit
+    const margin = this.margin = this.opts.margin // outer padding, in pixels
+    const frameThicknessX = this.frameX = FRAME_X * unit
+    const frameThicknessY = this.frameY = FRAME_Y * unit
     const bar = BAR * unit
 
-    const canvasWidth = this.canvasWidth = this.canvas.width = totalWidth(this.opts) * unit
-    const canvasHeight = this.canvasHeight = this.canvas.height = totalHeight(this.opts) * unit
+    const canvasWidth = this.canvasWidth = this.canvas.width = TOTAL_W * unit + 2 * margin
+    const canvasHeight = this.canvasHeight = this.canvas.height = TOTAL_H * unit + 2 * margin
 
     this.frame = {
       x: margin,
@@ -422,7 +420,7 @@ class Diagram {
     }
 
     if (numCheckers > maxCheckersPerPoint) {
-      this.ctx.fillStyle = player.textColor
+      this.ctx.fillStyle = deriveTextColor(player.checkerColor)
       const x = point.midpoint
 
       // Place the count label over the outermost checker in the stack.
@@ -448,7 +446,7 @@ class Diagram {
       const cy = this.board.y + (this.board.height * 2 / 3)
       this.drawSingleChecker(cx, cy, this.radius, this.opts.player2)
       if (this.game.oppBarCheckers > 1) {
-        this.ctx.fillStyle = this.opts.player2.textColor
+        this.ctx.fillStyle = deriveTextColor(this.opts.player2.checkerColor)
         this.ctx.fillText(this.game.oppBarCheckers, cx, cy + (this.radius - this.u(0.3)))
       }
     }
@@ -458,7 +456,7 @@ class Diagram {
       const cy = this.board.y + (this.board.height / 3)
       this.drawSingleChecker(cx, cy, this.radius, this.opts.player1)
       if (this.game.playerBarCheckers > 1) {
-        this.ctx.fillStyle = this.opts.player1.textColor
+        this.ctx.fillStyle = deriveTextColor(this.opts.player1.checkerColor)
         this.ctx.fillText(this.game.playerBarCheckers, cx, cy + (this.radius - this.u(0.3)))
       }
     }
@@ -521,7 +519,7 @@ class Diagram {
     const isPlayer = this.game.turn === '1'
     const colors = isPlayer ? this.opts.player1 : this.opts.player2
     const dieColor = colors.checkerColor
-    const pipColor = colors.textColor
+    const pipColor = deriveTextColor(dieColor)
 
     const dieSize = DIE * this.unit
 
@@ -752,8 +750,6 @@ if (typeof module !== 'undefined' && module.exports) {
     BoardStyle,
     mergeOptions,
     resolveUnit,
-    totalWidth,
-    totalHeight,
     clampChannel,
     hexToRgb,
     rgbToHex,
@@ -761,6 +757,7 @@ if (typeof module !== 'undefined' && module.exports) {
     darken,
     luminance,
     deriveCheckerBorder,
+    deriveTextColor,
     charToCount,
     xgidToGame,
     DEFAULT_OPTIONS,
@@ -768,7 +765,11 @@ if (typeof module !== 'undefined' && module.exports) {
     BOARD_W,
     BOARD_H,
     BAR,
+    FRAME_X,
+    FRAME_Y,
     CHECKER_DIAM,
+    TOTAL_W,
+    TOTAL_H,
     THEMES,
     STARTING_POSITION
   }
