@@ -14,6 +14,13 @@ Keep these in mind when changing the library (see [AGENTS.md](AGENTS.md) for the
   for tests, guard them so the browser-global path keeps working.
 - **Drawing one board stays a one-liner**: `new Diagram(canvas, 'XGID=…').draw()`. New options or
   styling APIs should be additive, never required for the simple case.
+- **README vs `index.html` — know where things go.** `README.md` is the front door and reference
+  manual: it is read on github.com, so it must be useful *without running any JavaScript* (purpose,
+  quick start, the options/sizing/theme reference, each shown with a short illustrative snippet, and
+  later static screenshots). `index.html` is the live, interactive demo and feature showcase —
+  controls plus a gallery of positions that exercise every rendering path. Rule of thumb: if it has
+  to *run* to be useful, it belongs in the demo; if it documents *what the API is*, it belongs in
+  the README.
 
 ## Running the demo
 
@@ -25,6 +32,18 @@ xdg-open index.html      # Linux
 ```
 
 Or serve it locally with any static file server.
+
+## Running tests
+
+The library has a small test suite built on Node's built-in [`node:test`](https://nodejs.org/api/test.html)
+runner — no runtime dependencies, matching the project's dependency-free ethos. Run it with:
+
+```sh
+npm test     # runs `node --test`
+```
+
+The tests are dev-only and do not affect drop-in `<script>` usage: `board.js` guards its module
+exports so the browser-global path keeps working.
 
 ## Code style
 
@@ -54,5 +73,7 @@ New files should follow the conventions used by existing files:
 | File | Purpose |
 |---|---|
 | `board.js` | The library — Canvas renderer and XGID parser |
-| `index.html` | Interactive demo |
+| `index.html` | Interactive demo and feature showcase |
 | `docs/xgid.md` | XGID position format reference |
+| `test/` | `node:test` suite for the pure helpers |
+| `package.json` | Dev-only tooling (test script); not needed for drop-in use |

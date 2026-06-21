@@ -67,10 +67,12 @@ const TOTAL_H = 2 * FRAME_Y + BOARD_H // = 12.3 U
 // DEFAULT_OPTIONS; when none is given we fall back to DEFAULT_POINT_WIDTH so the
 // zero-config one-liner still has a size. `opts` must already be merged over
 // DEFAULT_OPTIONS, since canvasWidth back-solving subtracts the margin.
+//   pointWidth  - the unit U itself (most direct)
+//   boardWidth  - the whole framed board (frame + bar + playing area), TOTAL_W U
+//   canvasWidth - the framed board plus the outer pixel margin on both sides
 function resolveUnit (opts) {
-  if (opts.checkerRadius != null) return opts.checkerRadius / (CHECKER_DIAM / 2)
   if (opts.pointWidth != null) return opts.pointWidth
-  if (opts.boardWidth != null) return opts.boardWidth / BOARD_W
+  if (opts.boardWidth != null) return opts.boardWidth / TOTAL_W
   if (opts.canvasWidth != null) return (opts.canvasWidth - 2 * opts.margin) / TOTAL_W
   return DEFAULT_POINT_WIDTH
 }

@@ -11,7 +11,6 @@ const {
   BoardStyle,
   DEFAULT_OPTIONS,
   DEFAULT_POINT_WIDTH,
-  BOARD_W,
   CHECKER_DIAM,
   TOTAL_W,
   TOTAL_H,
@@ -39,28 +38,23 @@ test('resolveUnit falls back to the default point width', () => {
 test('resolveUnit back-solves U from each scale knob', () => {
   // pointWidth is the unit itself.
   assert.equal(resolveUnit(merged({ pointWidth: 50 })), 50)
-  // boardWidth / BOARD_W.
-  assert.equal(resolveUnit(merged({ boardWidth: 12 * 30 })), 30)
-  assert.ok(close(resolveUnit(merged({ boardWidth: 480 })), 480 / BOARD_W))
-  // checkerRadius / (CHECKER_DIAM / 2): radius 18 -> U 40 at default ratios.
-  assert.ok(close(resolveUnit(merged({ checkerRadius: 18 })), 18 / (CHECKER_DIAM / 2)))
-  assert.equal(resolveUnit(merged({ checkerRadius: CHECKER_DIAM / 2 * 40 })), 40)
+  // boardWidth spans the whole framed board: boardWidth / TOTAL_W.
+  assert.equal(resolveUnit(merged({ boardWidth: TOTAL_W * 30 })), 30)
+  assert.ok(close(resolveUnit(merged({ boardWidth: 480 })), 480 / TOTAL_W))
   // canvasWidth: the outer margin is pixels, so it is subtracted before
   // dividing the remaining framed-board width by TOTAL_W.
   assert.ok(close(resolveUnit(merged({ canvasWidth: TOTAL_W * 40 + 2 * M })), 40))
 })
 
-test('resolveUnit precedence: checkerRadius > pointWidth > boardWidth > canvasWidth', () => {
+test('resolveUnit precedence: pointWidth > boardWidth > canvasWidth', () => {
   const all = merged({
-    checkerRadius: CHECKER_DIAM / 2 * 11, // -> U 11
     pointWidth: 22,
-    boardWidth: 12 * 33,
+    boardWidth: TOTAL_W * 33,
     canvasWidth: TOTAL_W * 44 + 2 * M
   })
-  assert.equal(resolveUnit(all), 11)
+  assert.equal(resolveUnit(all), 22)
 
-  assert.equal(resolveUnit(merged({ pointWidth: 22, boardWidth: 12 * 33 })), 22)
-  assert.equal(resolveUnit(merged({ boardWidth: 12 * 33, canvasWidth: TOTAL_W * 44 + 2 * M })), 33)
+  assert.equal(resolveUnit(merged({ boardWidth: TOTAL_W * 33, canvasWidth: TOTAL_W * 44 + 2 * M })), 33)
 })
 
 test('default scale yields r = 18 and a 688x572 canvas', () => {

@@ -91,25 +91,71 @@ to specify a few base colors:
 - **Checker border and sheen** — the border, radial highlight, and shadow are all derived from
   `checkerColor`. Light checkers get a black border for contrast; dark checkers get a slightly
   lighter shade so the border doesn't disappear against the fill.
+- **Checker labels and dice pips** — the checker count shown on a tall stack, the count on a
+  barred checker, and the pips on the dice all pick black or white automatically based on the
+  checker's brightness. A theme therefore only ever specifies fill colors, never text colors.
 
 ### Options reference
 
+Every option is optional; unspecified keys inherit from `DEFAULT_OPTIONS`. Sizing is controlled
+separately — see [Sizing](#sizing).
+
 | Option | Default | Description |
 |---|---|---|
-| `canvasWidth` | `690` | Canvas width in pixels |
-| `canvasHeight` | `560` | Canvas height in pixels |
-| `canvasMargin` | `40` | Margin between canvas edge and board frame |
-| `frameThicknessX` | `50` | Horizontal frame thickness |
-| `frameThicknessY` | `25` | Vertical frame thickness |
-| `barThickness` | `40` | Width of the center bar |
+| `margin` | `40` | Outer padding in pixels between the canvas edge and the board frame; a constant gap regardless of board scale |
 | `frameColor` | `#5a3723` (walnut) | Base color for the frame and bar; gradient shades derived |
 | `boardBackground` | `#226434` (green) | Board background (felt) color |
 | `oddPoints` | `#b42828` (burgundy) | Base color for odd-numbered points; tip shade derived |
 | `evenPoints` | `#ebd7af` (ivory) | Base color for even-numbered points; tip shade derived |
 | `player1.checkerColor` | `#ffffff` | Player's checker fill; border, highlight, and shadow derived |
-| `player1.textColor` | `#000000` | Text on Player's checkers |
 | `player2.checkerColor` | `#000000` | Opponent's checker fill; border, highlight, and shadow derived |
-| `player2.textColor` | `#ffffff` | Text on Opponent's checkers |
+
+## Sizing
+
+Every dimension on the board is a fixed multiple of one point's width, so the aspect ratio is
+constant and a single scale factor reaches the screen. By default one point is 40px wide; pass
+**one** optional scale knob (in the same options object) to size the board however is convenient:
+
+| Scale knob | Meaning |
+|---|---|
+| `pointWidth` | Pixel width of one point/column — the base unit (most direct) |
+| `boardWidth` | Pixel width of the whole framed board, frame edge to edge (includes the frame and bar) |
+| `canvasWidth` | Total canvas width in pixels (the framed board plus the outer `margin` on each side) |
+
+If more than one is given, the first present in the order above wins. The canvas height follows
+automatically from the fixed aspect ratio.
+
+```js
+const diagram = new Diagram(canvas, xgid, { pointWidth: 30 });
+diagram.draw();
+```
+
+## Drawing Many Diagrams with One Style
+
+When a page shows several boards that should all look alike — a match transcript, a set of
+flashcards — build a `BoardStyle` once (with a theme and/or a scale knob) and reuse it for every
+diagram:
+
+```js
+const style = new BoardStyle({ ...THEMES.Midnight, pointWidth: 28 });
+
+style.draw(canvasA, 'XGID=…');   // every board shares the same look and size
+style.draw(canvasB, 'XGID=…');
+```
+
+`BoardStyle.draw(canvas, xgid)` returns the underlying `Diagram`. You can also loop over a list of
+positions, drawing each into its own canvas:
+
+```js
+const style = new BoardStyle(THEMES.Ocean);
+
+for (const [canvas, xgid] of positions) {
+  style.draw(canvas, xgid);
+}
+```
+
+Drawing a single board needs no `BoardStyle` — that stays the one-liner
+`new Diagram(canvas, 'XGID=…').draw()`.
 
 ## Notes
 
