@@ -228,7 +228,7 @@ class Point {
     ctx.fillText(this.index + 1, this.midpoint, this.textPoint)
     ctx.restore()
   }
-};
+}
 
 class Diagram {
   constructor (canvas, game, opts) {
@@ -622,7 +622,7 @@ class BoardStyle {
 
 function degToRad (degrees) {
   return degrees * Math.PI / 180
-};
+}
 
 function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
   ctx.save()
@@ -663,7 +663,7 @@ function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
     ctx.fill()
   })
   ctx.restore()
-};
+}
 
 function charToCount (char) {
   if (char === '-'.charCodeAt(0)) {
