@@ -176,13 +176,13 @@ class Point {
       this.xDirection = 1 // left to right
       this.yDirection = 1 // downward
       this.baseLine = this.board.y
-      this.textPoint = this.board.y - 6
+      this.textPoint = this.board.y - this.board.unit * 0.15
     } else { // Points on the near (Player 1) side of the board
       this.startX = this.board.x + this.board.width
       this.xDirection = -1 // right to left
       this.yDirection = -1 // upward
       this.baseLine = this.board.y + this.board.height
-      this.textPoint = this.board.y + this.board.height + 18
+      this.textPoint = this.board.y + this.board.height + this.board.unit * 0.45
     }
     if (this.index < 6 || this.index > 17) { // Points on the right side of the bar.
       this.startX += this.board.bar
