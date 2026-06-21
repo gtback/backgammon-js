@@ -11,7 +11,7 @@
   <title>Backgammon-JS Demo</title>
   <style>
     body {
-      margin: 20;
+      margin: 20px;
     }
     #controls {
       margin: 1em 0;
@@ -132,7 +132,6 @@ diagram.draw();</code></pre>
         gameId = window.location.hash;
         element.value = gameId;
       }
-      //console.log(gameId)
 
       const diagram = new Diagram(document.querySelector('#diagram1'), gameId, currentOpts);
       diagram.draw();

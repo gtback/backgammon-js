@@ -176,13 +176,13 @@ class Point {
       this.xDirection = 1 // left to right
       this.yDirection = 1 // downward
       this.baseLine = this.board.y
-      this.textPoint = this.board.y - 6
+      this.textPoint = this.board.y - this.board.unit * 0.15
     } else { // Points on the near (Player 1) side of the board
       this.startX = this.board.x + this.board.width
       this.xDirection = -1 // right to left
       this.yDirection = -1 // upward
       this.baseLine = this.board.y + this.board.height
-      this.textPoint = this.board.y + this.board.height + 18
+      this.textPoint = this.board.y + this.board.height + this.board.unit * 0.45
     }
     if (this.index < 6 || this.index > 17) { // Points on the right side of the bar.
       this.startX += this.board.bar
@@ -228,7 +228,7 @@ class Point {
     ctx.fillText(this.index + 1, this.midpoint, this.textPoint)
     ctx.restore()
   }
-};
+}
 
 class Diagram {
   constructor (canvas, game, opts) {
@@ -247,26 +247,25 @@ class Diagram {
     this.radius = (CHECKER_DIAM / 2) * unit
 
     const margin = this.margin = this.opts.margin // outer padding, in pixels
-    const frameThicknessX = this.frameX = FRAME_X * unit
-    const frameThicknessY = this.frameY = FRAME_Y * unit
-    const bar = BAR * unit
+    this.frameX = FRAME_X * unit
+    this.frameY = FRAME_Y * unit
 
-    const canvasWidth = this.canvasWidth = this.canvas.width = TOTAL_W * unit + 2 * margin
-    const canvasHeight = this.canvasHeight = this.canvas.height = TOTAL_H * unit + 2 * margin
+    this.canvas.width = this.canvasWidth = TOTAL_W * unit + 2 * margin
+    this.canvas.height = this.canvasHeight = TOTAL_H * unit + 2 * margin
 
     this.frame = {
       x: margin,
       y: margin,
-      width: canvasWidth - 2 * margin,
-      height: canvasHeight - 2 * margin
+      width: this.canvasWidth - 2 * margin,
+      height: this.canvasHeight - 2 * margin
     }
 
     this.board = {
-      x: margin + frameThicknessX,
-      y: margin + frameThicknessY,
+      x: margin + this.frameX,
+      y: margin + this.frameY,
       width: BOARD_W * unit,
       height: BOARD_H * unit,
-      bar,
+      bar: BAR * unit,
       unit
     }
 
@@ -408,16 +407,14 @@ class Diagram {
     // Use point-1 since we number points 1-24 but the code expects 0-23.
     const point = this.points[pointNum - 1]
 
-    // Space above the baseline before starting checkers
-    const pointPadding = this.u(0.025)
-    // Space between checkers on the same point
-    const pointSpacing = this.u(0.025)
+    // Gap above the baseline before the first checker, and between checkers.
+    const gap = this.u(0.025)
 
     const maxCheckersPerPoint = 5
 
     for (let i = 0; i < Math.min(numCheckers, maxCheckersPerPoint); i++) {
       const cx = point.midpoint
-      const cy = point.baseLine + point.yDirection * (pointPadding + pointSpacing * i + (2 * radius * i) + radius)
+      const cy = point.baseLine + point.yDirection * (gap + gap * i + (2 * radius * i) + radius)
       this.drawSingleChecker(cx, cy, radius, player)
     }
 
@@ -430,7 +427,7 @@ class Diagram {
       if (point.yDirection === -1) {
         offsets--
       }
-      const y = point.baseLine + point.yDirection * (((2 * radius + pointSpacing) * offsets)) - (radius - this.u(0.125))
+      const y = point.baseLine + point.yDirection * (((2 * radius + gap) * offsets)) - (radius - this.u(0.125))
 
       this.ctx.fillText(numCheckers, x, y)
     }
@@ -439,37 +436,24 @@ class Diagram {
 
   drawCheckersOnBar () {
     this.ctx.save()
-    const barCenter = this.board.x + (this.board.width / 2) + this.board.bar / 2
-
     this.ctx.textAlign = 'center'
-
-    if (this.game.oppBarCheckers > 0) {
-      const cx = barCenter
-      const cy = this.board.y + (this.board.height * 2 / 3)
-      this.drawSingleChecker(cx, cy, this.radius, this.opts.player2)
-      if (this.game.oppBarCheckers > 1) {
-        this.ctx.fillStyle = deriveTextColor(this.opts.player2.checkerColor)
-        this.ctx.fillText(this.game.oppBarCheckers, cx, cy + (this.radius - this.u(0.3)))
-      }
-    }
-
-    if (this.game.playerBarCheckers > 0) {
-      const cx = barCenter
-      const cy = this.board.y + (this.board.height / 3)
-      this.drawSingleChecker(cx, cy, this.radius, this.opts.player1)
-      if (this.game.playerBarCheckers > 1) {
-        this.ctx.fillStyle = deriveTextColor(this.opts.player1.checkerColor)
-        this.ctx.fillText(this.game.playerBarCheckers, cx, cy + (this.radius - this.u(0.3)))
-      }
-    }
+    // The two players' barred checkers sit two-thirds and one-third down the bar.
+    this.drawBarChecker(this.game.oppBarCheckers, this.board.y + this.board.height * 2 / 3, this.opts.player2)
+    this.drawBarChecker(this.game.playerBarCheckers, this.board.y + this.board.height / 3, this.opts.player1)
     this.ctx.restore()
   }
 
+  drawBarChecker (count, cy, player) {
+    if (count <= 0) return
+    const cx = this.board.x + this.board.width / 2 + this.board.bar / 2
+    this.drawSingleChecker(cx, cy, this.radius, player)
+    if (count > 1) {
+      this.ctx.fillStyle = deriveTextColor(player.checkerColor)
+      this.ctx.fillText(count, cx, cy + (this.radius - this.u(0.3)))
+    }
+  }
+
   drawCube (owner, value) {
-  // Owner should be:
-  // - 0 for a centered cube
-  // - 1 if the cube is owned by the player
-  // - -1 if the cube is owned by the opponent
     this.ctx.save()
     const cubeSize = CUBE * this.unit
     const railOffset = (this.frameX - cubeSize) / 2
@@ -478,6 +462,7 @@ class Diagram {
 
     let y
 
+    // An unturned (centered) cube shows 64 by convention, not its value of 1.
     if (value === 1) {
       value = 64
     }
@@ -566,47 +551,37 @@ class Diagram {
 
   drawCheckersOffBoard () {
     this.ctx.save()
-    const offCheckerX = CHECKER_DIAM * this.unit
-    const offCheckerY = OFF_H * this.unit
-    const step = OFF_STEP * this.unit
-    const groupGap = this.u(0.125) // extra space between every 5 checkers
-    const cornerRadius = this.u(0.075)
-
     this.ctx.strokeStyle = BLACK
-
-    const x = this.canvasWidth - this.margin - (this.frameX + offCheckerX) / 2
-
-    // Opponent
-    let y = this.margin + this.frameY
-
-    this.ctx.fillStyle = this.opts.player2.checkerColor
-
-    for (let i = 0; i < this.game.opponentOffCheckers; i++) {
-      this.ctx.beginPath()
-      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, cornerRadius)
-      this.ctx.fill()
-      this.ctx.stroke()
-      y = y + step
-      if (i % 5 === 4) {
-        y = y + groupGap
-      }
-    }
-
-    // Player
-    y = this.canvasHeight - this.margin - this.frameY - offCheckerY
-    this.ctx.fillStyle = this.opts.player1.checkerColor
-
-    for (let i = 0; i < this.game.playerOffCheckers; i++) {
-      this.ctx.beginPath()
-      this.ctx.roundRect(x, y, offCheckerX, offCheckerY, cornerRadius)
-      this.ctx.fill()
-      this.ctx.stroke()
-      y = y - step
-      if (i % 5 === 4) {
-        y = y - groupGap
-      }
-    }
+    // The opponent's tray stacks down from the top frame; the player's stacks up
+    // from the bottom frame.
+    this.drawOffBoardStack(this.game.opponentOffCheckers, this.margin + this.frameY, 1, this.opts.player2.checkerColor)
+    this.drawOffBoardStack(this.game.playerOffCheckers, this.canvasHeight - this.margin - this.frameY - OFF_H * this.unit, -1, this.opts.player1.checkerColor)
     this.ctx.restore()
+  }
+
+  // Draw `count` borne-off checkers as a stack of edge-on bars, starting at
+  // `startY` and stepping by `dir` (1 = down from the top, -1 = up from the
+  // bottom), with a small extra gap after every 5.
+  drawOffBoardStack (count, startY, dir, color) {
+    const width = CHECKER_DIAM * this.unit
+    const height = OFF_H * this.unit
+    const step = OFF_STEP * this.unit
+    const groupGap = this.u(0.125)
+    const cornerRadius = this.u(0.075)
+    const x = this.canvasWidth - this.margin - (this.frameX + width) / 2
+
+    this.ctx.fillStyle = color
+    let y = startY
+    for (let i = 0; i < count; i++) {
+      this.ctx.beginPath()
+      this.ctx.roundRect(x, y, width, height, cornerRadius)
+      this.ctx.fill()
+      this.ctx.stroke()
+      y += dir * step
+      if (i % 5 === 4) {
+        y += dir * groupGap
+      }
+    }
   }
 }
 
@@ -625,9 +600,8 @@ class BoardStyle {
 
 function degToRad (degrees) {
   return degrees * Math.PI / 180
-};
+}
 
-// Draw a single die at top-left (x, y) of side `size`, showing `value` (1-6).
 function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
   ctx.save()
   const radius = size * 0.15
@@ -667,7 +641,7 @@ function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
     ctx.fill()
   })
   ctx.restore()
-};
+}
 
 function charToCount (char) {
   if (char === '-'.charCodeAt(0)) {
@@ -681,7 +655,7 @@ function xgidToGame (xgid) {
   const regex = /(XGID=)?([-A-Oa-o]{26}):(\d+):(-?[01]):(-?1):([0-6][0-6]):(\d+):(\d+):([0-3]):(\d+):(\d+)/
   const match = xgid.match(regex)
   if (match === null) {
-    // TODO
+    throw new Error(`invalid XGID: ${xgid}`)
   }
 
   const checkers = match[2]

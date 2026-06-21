@@ -80,7 +80,7 @@ The face value of the doubling cube is `2^field`, so:
 | `xy` | Player rolled `x` and `y` — each character is one die face (e.g., `21` = 2 and 1, `63` = 6 and 3) |
 
 `D`, `B`, and `R` are defined by the XGID spec but are not currently parsed by this library;
-passing an XGID with these values will cause parsing to fail silently.
+an XGID containing them does not match the expected dice field, so `xgidToGame()` throws an error.
 
 ### 6. Player score
 
@@ -163,5 +163,5 @@ Position string breakdown for the starting position:
 | Position | Yes |
 | Cube value and owner | Yes — a value of 1 (XGID field `0`) displays as **64**, the standard backgammon convention for the unclaimed centered cube |
 | Player and opponent scores | Yes |
-| Dice | Yes — numeric rolls only; `D`/`B`/`R` not handled (parsing fails silently) |
+| Dice | Yes — numeric rolls only; `D`/`B`/`R` not handled (`xgidToGame()` throws) |
 | Turn, match length, max cube | Parsed, not yet drawn/used |
