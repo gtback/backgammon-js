@@ -466,10 +466,6 @@ class Diagram {
   }
 
   drawCube (owner, value) {
-  // Owner should be:
-  // - 0 for a centered cube
-  // - 1 if the cube is owned by the player
-  // - -1 if the cube is owned by the opponent
     this.ctx.save()
     const cubeSize = CUBE * this.unit
     const railOffset = (this.frameX - cubeSize) / 2
@@ -478,6 +474,7 @@ class Diagram {
 
     let y
 
+    // An unturned (centered) cube shows 64 by convention, not its value of 1.
     if (value === 1) {
       value = 64
     }
@@ -627,7 +624,6 @@ function degToRad (degrees) {
   return degrees * Math.PI / 180
 };
 
-// Draw a single die at top-left (x, y) of side `size`, showing `value` (1-6).
 function drawDie (ctx, x, y, size, value, dieColor, pipColor) {
   ctx.save()
   const radius = size * 0.15
