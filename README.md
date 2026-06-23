@@ -71,7 +71,7 @@ You only need to specify the keys you want to change — the rest inherit from `
 
 ### Built-in themes
 
-`board.js` exports a `THEMES` object with named presets (`Walnut`, `Midnight`, `Ocean`, `Slate`)
+`board.js` exports a `THEMES` object with named presets (`Maple`, `Midnight`, `Ocean`, `Slate`)
 that can be passed directly as the options argument:
 
 ```js

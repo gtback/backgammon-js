@@ -9,7 +9,7 @@ const WHITE = '#ffffff'
 // Base theme colors. Coordinated shades (frame gradient, point tips, checker
 // sheen) are derived from these at draw time via lighten()/darken(), so a theme
 // only needs to specify base colors.
-const WALNUT = '#5a3723'
+const MAPLE = '#b08a5a'
 const BURGUNDY = '#b42828'
 const IVORY = '#ebd7af'
 const FELT_GREEN = '#226434'
@@ -45,7 +45,7 @@ const DEFAULT_OPTIONS = {
   // Outer padding around the framed board, in pixels (a constant gap regardless
   // of board scale). Everything else a caller tunes is a color.
   margin: 40,
-  frameColor: WALNUT,
+  frameColor: MAPLE,
   boardBackground: FELT_GREEN,
   oddPoints: BURGUNDY,
   evenPoints: IVORY,
@@ -78,9 +78,9 @@ function resolveUnit (opts) {
 }
 
 // Named preset themes. Each is a partial options object (base colors only) that
-// merges over DEFAULT_OPTIONS. The 'Walnut' theme is the default look.
+// merges over DEFAULT_OPTIONS. The 'Maple' theme is the default look.
 const THEMES = {
-  Walnut: {},
+  Maple: {},
   Midnight: {
     frameColor: '#3a3f55',
     boardBackground: '#23263a',
