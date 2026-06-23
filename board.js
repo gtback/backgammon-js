@@ -520,14 +520,18 @@ class Diagram {
 
     if (roll === '00') {
       // Cube decision: the player is on roll but hasn't rolled yet. Show two
-      // dice (each a 1) stacked on the frame. Always use the right rail (the
-      // left rail holds the cube), centered vertically so the dice stay clear
-      // of the off-board checkers, which stack from the top and bottom ends.
-      // The die color still indicates whose decision it is.
+      // dice (each a 1) stacked on the right rail (the left rail holds the
+      // cube), at the on-roll player's end: the player (bottom) decides at the
+      // bottom of the rail, the opponent (top) at the top. The die color also
+      // indicates whose decision it is. Off-board checkers now cluster toward
+      // the bar, so the rail ends are free for the dice.
       const gap = this.u(0.2)
       const railX = this.canvasWidth - this.margin -
         this.frameX + (this.frameX - dieSize) / 2
-      const topY = (this.canvasHeight - (2 * dieSize + gap)) / 2
+      const blockHeight = 2 * dieSize + gap
+      const topY = isPlayer
+        ? this.board.y + this.board.height - blockHeight
+        : this.board.y
 
       drawDie(this.ctx, railX, topY, dieSize, 1, dieColor, pipColor)
       drawDie(this.ctx, railX, topY + dieSize + gap, dieSize, 1, dieColor, pipColor)
@@ -560,16 +564,20 @@ class Diagram {
   drawCheckersOffBoard () {
     this.ctx.save()
     this.ctx.strokeStyle = BLACK
-    // The opponent's tray stacks down from the top frame; the player's stacks up
-    // from the bottom frame.
-    this.drawOffBoardStack(this.game.opponentOffCheckers, this.margin + this.frameY, 1, this.opts.player2.checkerColor)
-    this.drawOffBoardStack(this.game.playerOffCheckers, this.canvasHeight - this.margin - this.frameY - OFF_H * this.unit, -1, this.opts.player1.checkerColor)
+    // Both trays cluster toward the bar (the board's vertical center) and grow
+    // outward toward the frames: the opponent's stacks upward from just above
+    // center, the player's downward from just below it.
+    const centerY = this.board.y + this.board.height / 2
+    const centerGap = this.u(0.15)
+    const height = OFF_H * this.unit
+    this.drawOffBoardStack(this.game.opponentOffCheckers, centerY - centerGap - height, -1, this.opts.player2.checkerColor)
+    this.drawOffBoardStack(this.game.playerOffCheckers, centerY + centerGap, 1, this.opts.player1.checkerColor)
     this.ctx.restore()
   }
 
   // Draw `count` borne-off checkers as a stack of edge-on bars, starting at
-  // `startY` and stepping by `dir` (1 = down from the top, -1 = up from the
-  // bottom), with a small extra gap after every 5.
+  // `startY` and stepping by `dir` (1 = downward, -1 = upward), with a small
+  // extra gap after every 5.
   drawOffBoardStack (count, startY, dir, color) {
     const width = CHECKER_DIAM * this.unit
     const height = OFF_H * this.unit
