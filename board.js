@@ -470,6 +470,11 @@ class Diagram {
       value = 64
     }
 
+    // cubeOwner arrives as a string from the XGID ('0' / '1' / '-1'); coerce so
+    // the placement branches below match. Without this every cube fell through
+    // to the player (bottom) position.
+    owner = Number(owner)
+
     if (owner === 0) {
       y = (this.canvasHeight - cubeSize) / 2
     } else if (owner === -1) {
