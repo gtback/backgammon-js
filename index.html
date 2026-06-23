@@ -12,6 +12,40 @@
   <style>
     body {
       margin: 20px;
+      max-width: 1000px;
+    }
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+    /* Responsive grids of independent diagrams. */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5em;
+      margin: 1em 0;
+    }
+    .themes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1em;
+      margin: 1em 0;
+    }
+    figure {
+      margin: 0;
+    }
+    figcaption {
+      margin-top: 0.4em;
+    }
+    figcaption .title {
+      font-weight: bold;
+    }
+    figcaption code {
+      display: block;
+      margin-top: 0.25em;
+      font-size: 0.8em;
+      color: #555;
+      word-break: break-all;
     }
     #controls {
       margin: 1em 0;
@@ -30,51 +64,60 @@
 
 <body>
   <h1>Backgammon-JS</h1>
-  <p>This JavaScript library makes it easy to draw Backgammon boards.</p>
+  <p>
+    A dependency-free JavaScript library for drawing backgammon boards on an HTML5 canvas. Drop
+    <code>board.js</code> onto any page with a plain <code>&lt;script&gt;</code> tag — no build step,
+    no npm — and render a position from an
+    <a href="https://github.com/gtback/backgammon-js/blob/main/docs/xgid.md">XGID string</a>.
+  </p>
 
-  <p>The diagram below uses the default starting position and default colors:</p>
+  <h2>The simplest board</h2>
+  <p>Drawing one board takes no configuration — the default is the starting position in the default style:</p>
 
   <pre><code>&lt;script src="board.js"&gt;&lt;/script&gt;
 
-&lt;canvas id="diagram1"&gt;&lt;p&gt;Backgammon board&lt;/p&gt;&lt;/canvas&gt;
+&lt;canvas id="start"&gt;&lt;p&gt;Backgammon board&lt;/p&gt;&lt;/canvas&gt;
 
 &lt;script&gt;
-  const diagram = new Diagram(document.querySelector('#diagram1'));
+  const diagram = new Diagram(document.querySelector('#start'));
   diagram.draw();
 &lt;/script&gt;</code></pre>
 
+  <figure>
+    <canvas id="start"><p>Starting position</p></canvas>
+  </figure>
+
+  <h2>Theme once, draw many</h2>
   <p>
-    Pass an <a href="https://github.com/gtback/backgammon-js/blob/main/docs/xgid.md">XGID string</a>
-    as the second argument to draw a specific position. Pass a partial options object as the third
-    argument to customize colors — you only need the keys you want to change:
+    For a page full of diagrams, build a <code>BoardStyle</code> once and reuse it. A style is a partial
+    options object — here one of the built-in <code>THEMES</code> presets plus a scale knob — and every
+    board drawn through it shares the same look:
   </p>
 
-  <pre><code>const diagram = new Diagram(canvas, xgid, {
-  frameColor: '#1a3a5c',
-  boardBackground: '#1f5f7a',
-  player1: { checkerColor: '#f5f0e6' }
-});
-diagram.draw();</code></pre>
+  <pre><code>const style = new BoardStyle({ ...THEMES.Slate, pointWidth: 30 });
 
+style.draw(document.querySelector('#d1'), 'XGID=…');
+style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
+
+  <p>Every diagram below is drawn through that one shared style, on its own canvas:</p>
+
+  <div id="gallery" class="gallery"></div>
+
+  <h2>Built-in themes</h2>
   <p>
-    <code>board.js</code> also exports a <code>THEMES</code> object with built-in named presets
-    (<code>Walnut</code>, <code>Midnight</code>, <code>Ocean</code>, <code>Slate</code>) that
-    can be passed directly:
+    <code>board.js</code> ships named presets — <code>Walnut</code> (the default), <code>Midnight</code>,
+    <code>Ocean</code>, and <code>Slate</code>. Coordinated shades (frame gradient, point tips, checker
+    sheen) are derived automatically from a handful of base colors, so the same position looks like this
+    in each:
   </p>
 
-  <pre><code>const diagram = new Diagram(canvas, xgid, THEMES.Ocean);
-diagram.draw();</code></pre>
+  <div id="theme_row" class="themes"></div>
 
-  <p>
-    Coordinated shades — the frame gradient, point tips, and checker sheen — are derived
-    automatically from the base colors, so each theme is defined by just a handful of values.
-    Try the controls below to see it live:
-  </p>
+  <h2>Try it yourself</h2>
+  <p>Pick a preset or adjust individual base colors and watch a board re-render live:</p>
 
   <div>
-    <canvas id="diagram1">
-      <p>Figure 1</p>
-    </canvas>
+    <canvas id="playground"><p>Interactive board</p></canvas>
   </div>
 
   <div id="controls">
@@ -99,28 +142,101 @@ diagram.draw();</code></pre>
     <button onclick="drawBoard()">Draw Board</button>
   </div>
 
-  <div>
-    <p>Or try an example position:</p>
-    <ul>
-      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:1:31:0:0:3:0:10')">Opening roll 3-1</button></li>
-      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:1:65:0:0:3:0:10')">Opening roll 6-5 (lover's leap)</button></li>
-      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10')">Opening roll 2-1</button></li>
-      <li><button onclick="loadExample('XGID=-b----E-C---eE---c-e----B-:0:0:-1:52:0:0:3:0:10')">Opponent's roll 5-2</button></li>
-      <li><button onclick="loadExample('XGID=-BBC---------------cccbbb-:0:0:1:00:0:0:3:0:10')">Cube decision (race lead, player on roll)</button></li>
-    </ul>
-  </div>
-
   <p>View the source on <a href="https://github.com/gtback/backgammon-js">GitHub</a>.</p>
 
   <script>
+    // ---- The simplest board: zero-config one-liner. -----------------------
+    new Diagram(document.querySelector('#start')).draw();
+
+    // ---- Theme once, draw many: one shared BoardStyle for the gallery. ----
+    // A small pointWidth keeps the diagrams compact so several fit per row.
+    const galleryStyle = new BoardStyle({ ...THEMES.Slate, pointWidth: 30 });
+
+    // Each entry is pure data; the gallery is generated from it below. The
+    // positions progress from dice/turn through cube states, the bar, deep
+    // stacking, and bear-off, exercising the full set of rendered features.
+    const GALLERY = [
+      {
+        xgid: 'XGID=-b----E-C---eE---c-e----B-:0:0:1:31:0:0:3:0:10',
+        title: 'Opening roll — player on roll',
+        caption: 'Dice for the player (bottom) are drawn in their half of the board.'
+      },
+      {
+        xgid: 'XGID=-b----E-C---eE---c-e----B-:0:0:-1:65:0:0:3:0:10',
+        title: 'Opponent on roll',
+        caption: "The same position, opponent to move: the dice flip to the opponent's color and side."
+      },
+      {
+        xgid: 'XGID=-b--C-C-C---dD---c-c-c--B-:2:1:1:42:0:0:3:0:10',
+        title: 'Doubling cube owned',
+        caption: 'The cube has been turned to 4 and sits on the owning player’s rail.'
+      },
+      {
+        xgid: 'XGID=-BBC---------------cccbbb-:0:0:1:00:0:0:3:0:10',
+        title: 'Cube decision',
+        caption: 'A centered cube shows 64 by convention; with no roll yet, the dice rest on the frame rail.'
+      },
+      {
+        xgid: 'XGID=aa----E-C---eE---c-e-----B:0:0:1:54:0:0:3:0:10',
+        title: 'Checkers on the bar',
+        caption: 'Both players have checkers on the bar (player 2, opponent 1).'
+      },
+      {
+        xgid: 'XGID=------H-E---bB---e-h------:0:0:1:53:0:0:3:0:10',
+        title: 'More than five on a point',
+        caption: 'A stack taller than five is capped at a 5-high column with a count label.'
+      },
+      {
+        xgid: 'XGID=-B-C------------------e-c-:0:0:1:31:5:3:0:7:10',
+        title: 'Bearing off',
+        caption: 'Borne-off checkers stack in the side tray; match scores show below each player.'
+      }
+    ];
+
+    const gallery = document.getElementById('gallery');
+    GALLERY.forEach((entry) => {
+      const figure = document.createElement('figure');
+
+      const canvas = document.createElement('canvas');
+      figure.appendChild(canvas);
+
+      const caption = document.createElement('figcaption');
+      const title = document.createElement('span');
+      title.className = 'title';
+      title.textContent = entry.title;
+      caption.appendChild(title);
+      caption.appendChild(document.createTextNode(' — ' + entry.caption));
+      const code = document.createElement('code');
+      code.textContent = entry.xgid;
+      caption.appendChild(code);
+      figure.appendChild(caption);
+
+      gallery.appendChild(figure);
+      galleryStyle.draw(canvas, entry.xgid);
+    });
+
+    // ---- Built-in themes: the same position in each preset. ---------------
+    const THEME_DEMO_XGID = 'XGID=-b----E-C---eE---c-e----B-:0:0:1:31:0:0:3:0:10';
+    const themeRow = document.getElementById('theme_row');
+    Object.keys(THEMES).forEach((name) => {
+      const figure = document.createElement('figure');
+      const canvas = document.createElement('canvas');
+      figure.appendChild(canvas);
+      const caption = document.createElement('figcaption');
+      const title = document.createElement('span');
+      title.className = 'title';
+      title.textContent = name;
+      caption.appendChild(title);
+      figure.appendChild(caption);
+      themeRow.appendChild(figure);
+
+      new Diagram(canvas, THEME_DEMO_XGID, { ...THEMES[name], pointWidth: 22 }).draw();
+    });
+
+    // ---- Try it yourself: one interactive scratch canvas. -----------------
     // Color overrides applied on top of the board's DEFAULT_OPTIONS. Starts as
     // the selected theme and is updated by the color pickers.
     let currentOpts = {};
-
-    function loadExample(xgid) {
-      document.getElementById('game_id').value = xgid;
-      drawBoard();
-    }
 
     function drawBoard() {
       let gameId = null;
@@ -133,7 +249,7 @@ diagram.draw();</code></pre>
         element.value = gameId;
       }
 
-      const diagram = new Diagram(document.querySelector('#diagram1'), gameId, currentOpts);
+      const diagram = new Diagram(document.querySelector('#playground'), gameId, currentOpts);
       diagram.draw();
     }
 
