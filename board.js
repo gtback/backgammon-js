@@ -280,7 +280,6 @@ class Diagram {
     this.drawFrame()
     this.drawBoard()
 
-    // TODO: Assumes a match, not money game
     this.drawPlayerScores()
 
     for (let i = 1; i < 25; i++) {
@@ -368,13 +367,17 @@ class Diagram {
     this.ctx.font = `${this.u(0.35)}px arial`
     this.ctx.textAlign = 'left'
 
+    // A match length of 0 means an unlimited / money game, which has no target
+    // score; show "(unlimited)" rather than a misleading "/0".
+    const matchLength = this.game.duration === '0' ? ' (unlimited)' : `/${this.game.duration}`
+
     // Opponent
     let y = this.margin - this.u(0.2)
-    this.ctx.fillText(`Opponent Score: ${this.game.oppScore}/${this.game.duration}`, x, y)
+    this.ctx.fillText(`Opponent Score: ${this.game.oppScore}${matchLength}`, x, y)
 
     // Player
     y = this.canvasHeight - this.margin + this.u(0.45)
-    this.ctx.fillText(`Player Score: ${this.game.playerScore}/${this.game.duration}`, x, y)
+    this.ctx.fillText(`Player Score: ${this.game.playerScore}${matchLength}`, x, y)
     this.ctx.restore()
   }
 
