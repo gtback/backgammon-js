@@ -103,7 +103,7 @@ separately — see [Sizing](#sizing).
 | Option | Default | Description |
 |---|---|---|
 | `margin` | `40` | Outer padding in pixels between the canvas edge and the board frame; a constant gap regardless of board scale |
-| `frameColor` | `#5a3723` (walnut) | Base color for the frame and bar; gradient shades derived |
+| `frameColor` | `#b08a5a` (maple) | Base color for the frame and bar; gradient shades derived |
 | `boardBackground` | `#226434` (green) | Board background (felt) color |
 | `oddPoints` | `#b42828` (burgundy) | Base color for odd-numbered points; tip shade derived |
 | `evenPoints` | `#ebd7af` (ivory) | Base color for even-numbered points; tip shade derived |

@@ -223,7 +223,7 @@ class Point {
     ctx.fill()
 
     // Label point number. The label sits on the frame, so pick black or white
-    // for contrast against the frame color (a dark walnut frame needs white).
+    // for contrast against the frame color (a dark frame needs white labels).
     ctx.fillStyle = luminance(this.opts.frameColor) > 0.5 ? BLACK : WHITE
     ctx.fillText(this.index + 1, this.midpoint, this.textPoint)
     ctx.restore()
