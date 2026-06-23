@@ -9,7 +9,7 @@ const WHITE = '#ffffff'
 // Base theme colors. Coordinated shades (frame gradient, point tips, checker
 // sheen) are derived from these at draw time via lighten()/darken(), so a theme
 // only needs to specify base colors.
-const WALNUT = '#5a3723'
+const MAPLE = '#b08a5a'
 const BURGUNDY = '#b42828'
 const IVORY = '#ebd7af'
 const FELT_GREEN = '#226434'
@@ -45,7 +45,7 @@ const DEFAULT_OPTIONS = {
   // Outer padding around the framed board, in pixels (a constant gap regardless
   // of board scale). Everything else a caller tunes is a color.
   margin: 40,
-  frameColor: WALNUT,
+  frameColor: MAPLE,
   boardBackground: FELT_GREEN,
   oddPoints: BURGUNDY,
   evenPoints: IVORY,
@@ -78,9 +78,9 @@ function resolveUnit (opts) {
 }
 
 // Named preset themes. Each is a partial options object (base colors only) that
-// merges over DEFAULT_OPTIONS. The 'Walnut' theme is the default look.
+// merges over DEFAULT_OPTIONS. The 'Maple' theme is the default look.
 const THEMES = {
-  Walnut: {},
+  Maple: {},
   Midnight: {
     frameColor: '#3a3f55',
     boardBackground: '#23263a',
@@ -223,7 +223,7 @@ class Point {
     ctx.fill()
 
     // Label point number. The label sits on the frame, so pick black or white
-    // for contrast against the frame color (a dark walnut frame needs white).
+    // for contrast against the frame color (a dark frame needs white labels).
     ctx.fillStyle = luminance(this.opts.frameColor) > 0.5 ? BLACK : WHITE
     ctx.fillText(this.index + 1, this.midpoint, this.textPoint)
     ctx.restore()
@@ -280,7 +280,6 @@ class Diagram {
     this.drawFrame()
     this.drawBoard()
 
-    // TODO: Assumes a match, not money game
     this.drawPlayerScores()
 
     for (let i = 1; i < 25; i++) {
@@ -368,13 +367,17 @@ class Diagram {
     this.ctx.font = `${this.u(0.35)}px arial`
     this.ctx.textAlign = 'left'
 
+    // A match length of 0 means an unlimited / money game, which has no target
+    // score; show "(unlimited)" rather than a misleading "/0".
+    const matchLength = this.game.duration === '0' ? ' (unlimited)' : `/${this.game.duration}`
+
     // Opponent
     let y = this.margin - this.u(0.2)
-    this.ctx.fillText(`Opponent Score: ${this.game.oppScore}/${this.game.duration}`, x, y)
+    this.ctx.fillText(`Opponent Score: ${this.game.oppScore}${matchLength}`, x, y)
 
     // Player
     y = this.canvasHeight - this.margin + this.u(0.45)
-    this.ctx.fillText(`Player Score: ${this.game.playerScore}/${this.game.duration}`, x, y)
+    this.ctx.fillText(`Player Score: ${this.game.playerScore}${matchLength}`, x, y)
     this.ctx.restore()
   }
 
@@ -467,6 +470,11 @@ class Diagram {
       value = 64
     }
 
+    // cubeOwner arrives as a string from the XGID ('0' / '1' / '-1'); coerce so
+    // the placement branches below match. Without this every cube fell through
+    // to the player (bottom) position.
+    owner = Number(owner)
+
     if (owner === 0) {
       y = (this.canvasHeight - cubeSize) / 2
     } else if (owner === -1) {
@@ -512,14 +520,18 @@ class Diagram {
 
     if (roll === '00') {
       // Cube decision: the player is on roll but hasn't rolled yet. Show two
-      // dice (each a 1) stacked on the frame. Always use the right rail (the
-      // left rail holds the cube), centered vertically so the dice stay clear
-      // of the off-board checkers, which stack from the top and bottom ends.
-      // The die color still indicates whose decision it is.
+      // dice (each a 1) stacked on the right rail (the left rail holds the
+      // cube), at the on-roll player's end: the player (bottom) decides at the
+      // bottom of the rail, the opponent (top) at the top. The die color also
+      // indicates whose decision it is. Off-board checkers now cluster toward
+      // the bar, so the rail ends are free for the dice.
       const gap = this.u(0.2)
       const railX = this.canvasWidth - this.margin -
         this.frameX + (this.frameX - dieSize) / 2
-      const topY = (this.canvasHeight - (2 * dieSize + gap)) / 2
+      const blockHeight = 2 * dieSize + gap
+      const topY = isPlayer
+        ? this.board.y + this.board.height - blockHeight
+        : this.board.y
 
       drawDie(this.ctx, railX, topY, dieSize, 1, dieColor, pipColor)
       drawDie(this.ctx, railX, topY + dieSize + gap, dieSize, 1, dieColor, pipColor)
@@ -552,16 +564,20 @@ class Diagram {
   drawCheckersOffBoard () {
     this.ctx.save()
     this.ctx.strokeStyle = BLACK
-    // The opponent's tray stacks down from the top frame; the player's stacks up
-    // from the bottom frame.
-    this.drawOffBoardStack(this.game.opponentOffCheckers, this.margin + this.frameY, 1, this.opts.player2.checkerColor)
-    this.drawOffBoardStack(this.game.playerOffCheckers, this.canvasHeight - this.margin - this.frameY - OFF_H * this.unit, -1, this.opts.player1.checkerColor)
+    // Both trays cluster toward the bar (the board's vertical center) and grow
+    // outward toward the frames: the opponent's stacks upward from just above
+    // center, the player's downward from just below it.
+    const centerY = this.board.y + this.board.height / 2
+    const centerGap = this.u(0.15)
+    const height = OFF_H * this.unit
+    this.drawOffBoardStack(this.game.opponentOffCheckers, centerY - centerGap - height, -1, this.opts.player2.checkerColor)
+    this.drawOffBoardStack(this.game.playerOffCheckers, centerY + centerGap, 1, this.opts.player1.checkerColor)
     this.ctx.restore()
   }
 
   // Draw `count` borne-off checkers as a stack of edge-on bars, starting at
-  // `startY` and stepping by `dir` (1 = down from the top, -1 = up from the
-  // bottom), with a small extra gap after every 5.
+  // `startY` and stepping by `dir` (1 = downward, -1 = upward), with a small
+  // extra gap after every 5.
   drawOffBoardStack (count, startY, dir, color) {
     const width = CHECKER_DIAM * this.unit
     const height = OFF_H * this.unit

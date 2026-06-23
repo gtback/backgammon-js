@@ -71,7 +71,7 @@ You only need to specify the keys you want to change — the rest inherit from `
 
 ### Built-in themes
 
-`board.js` exports a `THEMES` object with named presets (`Walnut`, `Midnight`, `Ocean`, `Slate`)
+`board.js` exports a `THEMES` object with named presets (`Maple`, `Midnight`, `Ocean`, `Slate`)
 that can be passed directly as the options argument:
 
 ```js
@@ -103,7 +103,7 @@ separately — see [Sizing](#sizing).
 | Option | Default | Description |
 |---|---|---|
 | `margin` | `40` | Outer padding in pixels between the canvas edge and the board frame; a constant gap regardless of board scale |
-| `frameColor` | `#5a3723` (walnut) | Base color for the frame and bar; gradient shades derived |
+| `frameColor` | `#b08a5a` (maple) | Base color for the frame and bar; gradient shades derived |
 | `boardBackground` | `#226434` (green) | Board background (felt) color |
 | `oddPoints` | `#b42828` (burgundy) | Base color for odd-numbered points; tip shade derived |
 | `evenPoints` | `#ebd7af` (ivory) | Base color for even-numbered points; tip shade derived |
