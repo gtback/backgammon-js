@@ -24,18 +24,18 @@ and player scores.
 
 ## Quick Start
 
-Include `board.js` in your page, then create a `Diagram` and call `.draw()`:
+Include `board.js` in your page, give it an empty container element, then create a `Diagram` and
+call `.draw()`. The library creates the `<canvas>` inside the container for you and overlays
+copy/download controls (see [Copying and exporting](#copying-and-exporting)):
 
 ```html
 <script src="board.js"></script>
 
-<canvas id="diagram">
-  <p>Backgammon board</p>
-</canvas>
+<div id="diagram"></div>
 
 <script>
-  const canvas = document.querySelector('#diagram');
-  const diagram = new Diagram(canvas);
+  const container = document.querySelector('#diagram');
+  const diagram = new Diagram(container);
   diagram.draw();
 </script>
 ```
@@ -44,7 +44,7 @@ Omitting the second argument (or passing `null`) draws the standard starting pos
 specific position, pass an XGID string:
 
 ```js
-const diagram = new Diagram(canvas, 'XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10');
+const diagram = new Diagram(container, 'XGID=-b----E-C---eE---c-e----B-:0:0:1:21:0:0:3:0:10');
 diagram.draw();
 ```
 
@@ -56,7 +56,7 @@ color pickers. The demo also supports loading a position via URL fragment: `inde
 Pass a partial options object as the third argument to `Diagram` to override any default colors:
 
 ```js
-const diagram = new Diagram(canvas, xgid, {
+const diagram = new Diagram(container, xgid, {
   frameColor: '#1a3a5c',
   boardBackground: '#1f5f7a',
   oddPoints: '#0e7490',
@@ -75,7 +75,7 @@ You only need to specify the keys you want to change — the rest inherit from `
 that can be passed directly as the options argument:
 
 ```js
-const diagram = new Diagram(canvas, xgid, THEMES.Midnight);
+const diagram = new Diagram(container, xgid, THEMES.Midnight);
 diagram.draw();
 ```
 
@@ -103,6 +103,7 @@ separately — see [Sizing](#sizing).
 | Option | Default | Description |
 |---|---|---|
 | `margin` | `40` | Outer padding in pixels between the canvas edge and the board frame; a constant gap regardless of board scale |
+| `controls` | `true` | Show the copy/download controls overlaid on the container (see [Copying and exporting](#copying-and-exporting)); set `false` for purely decorative boards. Ignored when a bare `<canvas>` is passed instead of a container |
 | `frameColor` | `#b08a5a` (maple) | Base color for the frame and bar; gradient shades derived |
 | `boardBackground` | `#226434` (green) | Board background (felt) color |
 | `oddPoints` | `#b42828` (burgundy) | Base color for odd-numbered points; tip shade derived |
@@ -126,7 +127,7 @@ If more than one is given, the first present in the order above wins. The canvas
 automatically from the fixed aspect ratio.
 
 ```js
-const diagram = new Diagram(canvas, xgid, { pointWidth: 30 });
+const diagram = new Diagram(container, xgid, { pointWidth: 30 });
 diagram.draw();
 ```
 
@@ -139,23 +140,47 @@ diagram:
 ```js
 const style = new BoardStyle({ ...THEMES.Midnight, pointWidth: 28 });
 
-style.draw(canvasA, 'XGID=…');   // every board shares the same look and size
-style.draw(canvasB, 'XGID=…');
+style.draw(containerA, 'XGID=…');   // every board shares the same look and size
+style.draw(containerB, 'XGID=…');
 ```
 
-`BoardStyle.draw(canvas, xgid)` returns the underlying `Diagram`. You can also loop over a list of
-positions, drawing each into its own canvas:
+`BoardStyle.draw(container, xgid)` returns the underlying `Diagram`. You can also loop over a list
+of positions, drawing each into its own container:
 
 ```js
 const style = new BoardStyle(THEMES.Ocean);
 
-for (const [canvas, xgid] of positions) {
-  style.draw(canvas, xgid);
+for (const [container, xgid] of positions) {
+  style.draw(container, xgid);
 }
 ```
 
 Drawing a single board needs no `BoardStyle` — that stays the one-liner
-`new Diagram(canvas, 'XGID=…').draw()`.
+`new Diagram(container, 'XGID=…').draw()`.
+
+## Copying and exporting
+
+Every diagram drawn into a container element gets a small set of controls, overlaid in the
+top-right corner and revealed on hover or keyboard focus (they stay in the tab order, and are
+hidden when printing): **copy the board as a PNG image**, **copy the XGID string**, and
+**download a PNG**. Pass `controls: false` in the options to omit them.
+
+The same actions are available as methods on the `Diagram`, so you can wire up your own UI:
+
+| Method | Description |
+|---|---|
+| `copyXgid()` | Copy the rendered XGID string to the clipboard. Returns a promise. |
+| `copyImage(scale = 2)` | Copy a PNG of the board to the clipboard; falls back to a download where the clipboard image API is unavailable (older browsers / insecure context). |
+| `downloadPng(scale = 2)` | Save a PNG of the board as a file. |
+| `toBlob(scale = 2)` | Resolve to a PNG `Blob` of the board. |
+| `toCanvas(scale = 2)` | Return a detached `<canvas>` with the board rendered at `scale`× the on-screen size. |
+
+Images are rendered at `scale`× the on-screen size (2× by default) so they stay crisp when pasted
+or saved. Clipboard access requires a [secure context](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts)
+(HTTPS or `localhost`).
+
+For advanced use you can still pass a `<canvas>` element directly instead of a container; the
+diagram renders into it and skips the controls.
 
 ## Notes
 

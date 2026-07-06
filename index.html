@@ -76,7 +76,7 @@
 
   <pre><code>&lt;script src="board.js"&gt;&lt;/script&gt;
 
-&lt;canvas id="start"&gt;&lt;p&gt;Backgammon board&lt;/p&gt;&lt;/canvas&gt;
+&lt;div id="start"&gt;&lt;/div&gt;
 
 &lt;script&gt;
   const diagram = new Diagram(document.querySelector('#start'));
@@ -84,7 +84,7 @@
 &lt;/script&gt;</code></pre>
 
   <figure>
-    <canvas id="start"><p>Starting position</p></canvas>
+    <div id="start"></div>
   </figure>
 
   <h2>Theme once, draw many</h2>
@@ -117,7 +117,7 @@ style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
   <p>Pick a preset or adjust individual base colors and watch a board re-render live:</p>
 
   <div>
-    <canvas id="playground"><p>Interactive board</p></canvas>
+    <div id="playground"></div>
   </div>
 
   <div id="controls">
@@ -150,7 +150,8 @@ style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
 
     // ---- Theme once, draw many: one shared BoardStyle for the gallery. ----
     // A small pointWidth keeps the diagrams compact so several fit per row.
-    const galleryStyle = new BoardStyle({ ...THEMES.Slate, pointWidth: 30 });
+    // These are decorative reference boards, so the copy controls are turned off.
+    const galleryStyle = new BoardStyle({ ...THEMES.Slate, pointWidth: 30, controls: false });
 
     // Each entry is pure data; the gallery is generated from it below. The
     // positions progress from dice/turn through cube states, the bar, deep
@@ -197,8 +198,8 @@ style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
     GALLERY.forEach((entry) => {
       const figure = document.createElement('figure');
 
-      const canvas = document.createElement('canvas');
-      figure.appendChild(canvas);
+      const board = document.createElement('div');
+      figure.appendChild(board);
 
       const caption = document.createElement('figcaption');
       const title = document.createElement('span');
@@ -212,7 +213,7 @@ style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
       figure.appendChild(caption);
 
       gallery.appendChild(figure);
-      galleryStyle.draw(canvas, entry.xgid);
+      galleryStyle.draw(board, entry.xgid);
     });
 
     // ---- Built-in themes: the same position in each preset. ---------------
@@ -220,8 +221,8 @@ style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
     const themeRow = document.getElementById('theme_row');
     Object.keys(THEMES).forEach((name) => {
       const figure = document.createElement('figure');
-      const canvas = document.createElement('canvas');
-      figure.appendChild(canvas);
+      const board = document.createElement('div');
+      figure.appendChild(board);
       const caption = document.createElement('figcaption');
       const title = document.createElement('span');
       title.className = 'title';
@@ -230,7 +231,7 @@ style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
       figure.appendChild(caption);
       themeRow.appendChild(figure);
 
-      new Diagram(canvas, THEME_DEMO_XGID, { ...THEMES[name], pointWidth: 22 }).draw();
+      new Diagram(board, THEME_DEMO_XGID, { ...THEMES[name], pointWidth: 22, controls: false }).draw();
     });
 
     // ---- Try it yourself: one interactive scratch canvas. -----------------
@@ -249,7 +250,11 @@ style.draw(document.querySelector('#d2'), 'XGID=…');</code></pre>
         element.value = gameId;
       }
 
-      const diagram = new Diagram(document.querySelector('#playground'), gameId, currentOpts);
+      // The library creates a fresh canvas inside the container on each draw, so
+      // clear the previous one before re-rendering.
+      const playground = document.querySelector('#playground');
+      playground.replaceChildren();
+      const diagram = new Diagram(playground, gameId, currentOpts);
       diagram.draw();
     }
 

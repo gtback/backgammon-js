@@ -45,6 +45,10 @@ const DEFAULT_OPTIONS = {
   // Outer padding around the framed board, in pixels (a constant gap regardless
   // of board scale). Everything else a caller tunes is a color.
   margin: 40,
+  // Show the copy/download controls (overlaid on the container, revealed on hover
+  // or keyboard focus). Set false for purely decorative boards. Ignored when the
+  // caller passes a bare <canvas> instead of a container element.
+  controls: true,
   frameColor: MAPLE,
   boardBackground: FELT_GREEN,
   oddPoints: BURGUNDY,
@@ -230,16 +234,118 @@ class Point {
   }
 }
 
+// Inline SVG icons for the overlay controls. Drawn with `currentColor` so the
+// button's color drives them; kept inline to preserve the dependency-free drop-in.
+const ICON_IMAGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
+const ICON_XGID = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/></svg>'
+const ICON_DOWNLOAD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>'
+
+// Styling for the control overlay. Hidden until the container is hovered or
+// receives keyboard focus (the buttons stay in the tab order regardless), and
+// suppressed entirely when printing so diagrams export clean.
+const CONTROL_STYLES = `
+.bgjs-container {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+}
+.bgjs-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.bgjs-container:hover .bgjs-controls,
+.bgjs-container:focus-within .bgjs-controls {
+  opacity: 1;
+}
+.bgjs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  cursor: pointer;
+}
+.bgjs-btn:hover { background: rgba(0, 0, 0, 0.75); }
+.bgjs-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.bgjs-btn svg { width: 18px; height: 18px; display: block; }
+.bgjs-status {
+  font: 12px/1 sans-serif;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.bgjs-status:empty { display: none; }
+@media print { .bgjs-controls { display: none !important; } }
+`
+
+// Inject the control stylesheet once per document.
+function ensureControlStyles () {
+  if (typeof document === 'undefined' || document.getElementById('bgjs-styles')) {
+    return
+  }
+  const style = document.createElement('style')
+  style.id = 'bgjs-styles'
+  style.textContent = CONTROL_STYLES
+  document.head.appendChild(style)
+}
+
+// Last-resort clipboard text copy for browsers without the async Clipboard API
+// (or an insecure context). Returns whether the copy succeeded.
+function legacyCopyText (text) {
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch (e) {
+    return false
+  }
+}
+
 class Diagram {
-  constructor (canvas, game, opts) {
-    this.canvas = canvas
+  // `target` is normally an empty container element (e.g. a <div>): the diagram
+  // creates its own <canvas> inside it and, by default, overlays copy/download
+  // controls. Passing a <canvas> directly is also supported — it renders into that
+  // canvas and skips the controls; this backward-compatible path is what the
+  // high-resolution image export (toCanvas) uses to render off-screen.
+  constructor (target, game, opts) {
     if (game == null) {
       game = STARTING_POSITION
     }
+    // The raw XGID exactly as drawn. The diagram is static (no moves are applied),
+    // so this is what "copy XGID" should yield — no game->XGID generator needed.
+    this.xgid = game
     this.game = xgidToGame(game)
-    this.ctx = canvas.getContext('2d')
 
     this.opts = mergeOptions(DEFAULT_OPTIONS, opts)
+
+    if (target && target.tagName === 'CANVAS') {
+      this.canvas = target
+    } else {
+      this.container = target
+      this.canvas = document.createElement('canvas')
+      target.appendChild(this.canvas)
+    }
+    this.ctx = this.canvas.getContext('2d')
 
     // Everything is a fixed multiple of one unit U (a column width). Resolve U
     // to pixels from the caller's scale knob, then derive the rest.
@@ -273,6 +379,10 @@ class Diagram {
     for (let point = 0; point < 24; point++) {
       this.points.push(new Point(point, this.board, this.opts))
     }
+
+    if (this.container && this.opts.controls !== false) {
+      this.attachControls()
+    }
   }
 
   draw () {
@@ -297,6 +407,113 @@ class Diagram {
     this.drawCheckersOffBoard()
 
     this.drawDice()
+
+    return this
+  }
+
+  // ---- Image / XGID export -------------------------------------------------
+
+  // Render a detached, higher-resolution copy of the board by reusing the whole
+  // draw pipeline on an off-screen canvas. `scale` multiplies the on-screen unit
+  // (and the pixel margin) so a pasted/saved image stays crisp.
+  toCanvas (scale = 2) {
+    const canvas = document.createElement('canvas')
+    new Diagram(canvas, this.xgid, {
+      ...this.opts,
+      controls: false,
+      pointWidth: this.unit * scale,
+      margin: this.opts.margin * scale
+    }).draw()
+    return canvas
+  }
+
+  // A PNG Blob of the board at `scale`x the on-screen size.
+  toBlob (scale = 2) {
+    return new Promise((resolve) => {
+      this.toCanvas(scale).toBlob(resolve, 'image/png')
+    })
+  }
+
+  // Copy the rendered XGID to the clipboard. Resolves true on success.
+  async copyXgid () {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(this.xgid)
+        return true
+      } catch (e) { /* fall through to the legacy copy */ }
+    }
+    return legacyCopyText(this.xgid)
+  }
+
+  // Copy a PNG of the board to the clipboard. Falls back to a download when the
+  // async Clipboard image API is unavailable (older browsers / insecure context).
+  // Resolves true if it reached the clipboard, false if it fell back to download.
+  async copyImage (scale = 2) {
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
+      try {
+        const blob = await this.toBlob(scale)
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        return true
+      } catch (e) { /* fall through to a download */ }
+    }
+    await this.downloadPng(scale)
+    return false
+  }
+
+  // Save a PNG of the board as a file.
+  async downloadPng (scale = 2) {
+    const blob = await this.toBlob(scale)
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'backgammon.png'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // Build the accessible copy/download control cluster inside the container.
+  attachControls () {
+    ensureControlStyles()
+    this.container.classList.add('bgjs-container')
+
+    const bar = document.createElement('div')
+    bar.className = 'bgjs-controls'
+
+    const status = document.createElement('span')
+    status.className = 'bgjs-status'
+    status.setAttribute('role', 'status')
+    status.setAttribute('aria-live', 'polite')
+
+    const flash = (msg) => {
+      status.textContent = msg
+      clearTimeout(this.statusTimer)
+      this.statusTimer = setTimeout(() => { status.textContent = '' }, 1500)
+    }
+
+    const button = (label, svg, onClick) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'bgjs-btn'
+      b.title = label
+      b.setAttribute('aria-label', label)
+      b.innerHTML = svg
+      b.addEventListener('click', onClick)
+      return b
+    }
+
+    bar.appendChild(button('Copy image', ICON_IMAGE, async () => {
+      flash((await this.copyImage()) ? 'Image copied' : 'Image downloaded')
+    }))
+    bar.appendChild(button('Copy XGID', ICON_XGID, async () => {
+      flash((await this.copyXgid()) ? 'XGID copied' : 'Copy failed')
+    }))
+    bar.appendChild(button('Download PNG', ICON_DOWNLOAD, () => {
+      this.downloadPng()
+      flash('Downloading…')
+    }))
+
+    bar.appendChild(status)
+    this.container.appendChild(bar)
   }
 
   // Pixels for `k` units. The whole layout is expressed in unit multiples; this
@@ -603,14 +820,14 @@ class Diagram {
 
 // A reusable style: merge options (a theme and/or scale knobs) once, then draw
 // many diagrams that share it. Drawing a single board needs no BoardStyle — that
-// path stays the one-liner `new Diagram(canvas, 'XGID=…').draw()`.
+// path stays the one-liner `new Diagram(container, 'XGID=…').draw()`.
 class BoardStyle {
   constructor (opts) {
     this.opts = mergeOptions(DEFAULT_OPTIONS, opts)
   }
 
-  draw (canvas, game) {
-    return new Diagram(canvas, game, this.opts).draw()
+  draw (target, game) {
+    return new Diagram(target, game, this.opts).draw()
   }
 }
 

@@ -12,7 +12,7 @@ Keep these in mind when changing the library (see [AGENTS.md](AGENTS.md) for the
 - **`board.js` stays a drop-in `<script>` file.** It must work on a plain HTML page with no npm,
   bundler, or framework. Any dev tooling here is optional and dev-only — if you add module exports
   for tests, guard them so the browser-global path keeps working.
-- **Drawing one board stays a one-liner**: `new Diagram(canvas, 'XGID=…').draw()`. New options or
+- **Drawing one board stays a one-liner**: `new Diagram(container, 'XGID=…').draw()`. New options or
   styling APIs should be additive, never required for the simple case.
 - **README vs `index.html` — know where things go.** `README.md` is the front door and reference
   manual: it is read on github.com, so it must be useful *without running any JavaScript* (purpose,
@@ -32,6 +32,14 @@ xdg-open index.html      # Linux
 ```
 
 Or serve it locally with any static file server.
+
+To exercise the copy controls (copy image / copy XGID), the page must run in a
+[secure context](https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts), so serve
+it over `http://localhost` rather than opening it via `file://`:
+
+```sh
+python3 -m http.server      # then open http://localhost:8000/
+```
 
 ## Running tests
 
