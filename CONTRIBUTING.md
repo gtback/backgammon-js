@@ -51,7 +51,8 @@ npm test     # runs `node --test`
 ```
 
 The tests are dev-only and do not affect drop-in `<script>` usage: `board.js` guards its module
-exports so the browser-global path keeps working.
+exports so the browser-global path keeps working. `test/idempotency.test.js` additionally evaluates
+`board.js` twice in one `vm` realm to prove re-loading it (as Anki does) is a safe no-op.
 
 ## Code style
 
@@ -61,6 +62,10 @@ pre-commit hook; to check manually:
 ```sh
 npx standard board.js
 ```
+
+`board.js` is wrapped in a single IIFE (see [AGENTS.md](AGENTS.md)), so its whole body is indented
+one level. If you restructure it, let `standard --fix board.js` handle the reindentation rather than
+doing it by hand.
 
 ## License compliance
 
@@ -75,6 +80,11 @@ New files should follow the conventions used by existing files:
 - Source code (`.js`): MIT
 - Documentation (`.md`): CC-BY-SA-4.0
 - Configuration / tooling: CC0-1.0
+
+## Pull requests
+
+`main` is protected: land changes through a pull request with the `test` status check green,
+rather than pushing to `main` directly.
 
 ## Key files
 
